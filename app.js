@@ -78,9 +78,11 @@ const modalTitle = document.querySelector("#modalTitle");
 const modalForm = document.querySelector("#modalForm");
 const modalEyebrow = document.querySelector("#modalEyebrow");
 const modalSubtitle = document.querySelector("#modalSubtitle");
+const modalCard = document.querySelector(".modal-card");
 
 let currentRoute = "profile";
 let activeModalTarget = "";
+let physicianResultsPage = 1;
 
 const profileState = {
   prequalifying: {
@@ -175,6 +177,29 @@ const checklistItems = [
   "If Diabetic Shoes have been ordered, I assume all responsibility for the preventative care of my feet and will not hold QMS responsible for any past, present, or future foot problems.",
   "To immediately notify Quantum Medical Supply PRIOR TO any change or cancellation of my health insurance coverage or joining a Health Maintenance Organization, Preferred Provider Plan or other managed care group.",
 ];
+
+const physicianDirectory = Array.from({ length: 125 }, (_, index) => {
+  const firstNames = ["Marc", "Maria", "Michael", "Michelle", "Megan", "Matthew", "Mia", "Monica", "Martin", "Mason"];
+  const lastNames = ["Perez", "Vanna", "Vetrano", "Murphy", "Bennett", "Sullivan", "Reyes", "Carver", "Dawson", "Carter"];
+  const cities = ["Scituate", "Hingham", "Plymouth", "Boston", "Quincy"];
+  const states = ["MA", "Massachusetts"];
+  const firstName = firstNames[index % firstNames.length];
+  const lastName = lastNames[Math.floor(index / firstNames.length) % lastNames.length];
+  const city = cities[index % cities.length];
+  const state = states[index % states.length];
+  const streetNumber = 65 + (index % 18) * 4;
+  const phoneTail = String(5560 + index).padStart(4, "0");
+
+  return {
+    id: index + 1,
+    name: `${firstName} ${lastName}`,
+    street: `${streetNumber} Pin Oak Dr`,
+    city,
+    state,
+    phone: `512-557-${phoneTail.slice(-4)}`,
+    title: "Primary Physician",
+  };
+});
 
 const catalogSections = [
   {
@@ -286,6 +311,13 @@ function initNav() {
     }
   });
 
+  document.addEventListener("input", (event) => {
+    if (!(event.target instanceof HTMLInputElement)) return;
+    if (!event.target.matches("[data-modal-physician-filter]")) return;
+    const field = event.target.dataset.modalPhysicianFilter;
+    profileState.physician[field] = event.target.value;
+  });
+
   document.addEventListener("click", (event) => {
     const closeTrigger = event.target.closest("[data-modal-close]");
     if (closeTrigger) {
@@ -303,6 +335,27 @@ function initNav() {
         profileState.insurance.secondaryPolicyNumber = "";
         rerenderCurrentRoute();
       }
+      return;
+    }
+    const physicianSearchTrigger = event.target.closest("[data-open-physician-results]");
+    if (physicianSearchTrigger) {
+      physicianResultsPage = 1;
+      openModal("physician-search-results");
+      return;
+    }
+    const physicianSearchSubmit = event.target.closest("[data-physician-search-submit]");
+    if (physicianSearchSubmit) {
+      physicianResultsPage = 1;
+      rerenderCurrentRoute();
+      openModal("physician-search-results");
+      return;
+    }
+    const physicianPageTrigger = event.target.closest("[data-physician-page]");
+    if (physicianPageTrigger instanceof HTMLElement) {
+      const requestedPage = Number(physicianPageTrigger.dataset.physicianPage);
+      const totalPages = Math.max(1, Math.ceil(getFilteredPhysicians().length / 5));
+      physicianResultsPage = Math.min(Math.max(requestedPage, 1), totalPages);
+      openModal("physician-search-results");
       return;
     }
     const trigger = event.target.closest("[data-edit-target]");
@@ -325,13 +378,7 @@ function syncRoute() {
   const route = routes[routeKey] ?? routes.home;
   const render = views[routeKey] ?? views.home;
 
-  pageTitle.textContent = route.title;
-  pageSubtitle.innerHTML = routeKey === "profile"
-    ? `${route.subtitle} <button class="page-header__text-link" data-edit-target="prequalifying" type="button">Edit Prequalifying Questions</button>`
-    : route.subtitle;
-  pageHeaderActions.innerHTML = "";
-  footerLabel.textContent = route.footer;
-  pageTitle.classList.toggle("home-title", routeKey === "home");
+  renderPageChrome(routeKey, route);
   pageContent.innerHTML = render(routeKey);
 
   navButtons.forEach((button) => {
@@ -751,6 +798,9 @@ function profilePairField(label, left, right, striped = false) {
 
 function physicianResult(name, meta) {
   const text = meta ? `<p class="physician-results__meta">${meta}</p>` : "";
+  const action = name === "See All Search Results"
+    ? `<button class="physician-results__select" data-open-physician-results type="button">Open</button>`
+    : `<button class="physician-results__select" type="button">Select</button>`;
   return `
     <div class="physician-results__row">
       <div class="physician-results__identity">
@@ -760,7 +810,7 @@ function physicianResult(name, meta) {
           ${text}
         </div>
       </div>
-      <button class="physician-results__select" type="button">Select</button>
+      ${action}
     </div>
   `;
 }
@@ -778,11 +828,14 @@ function openModal(target) {
   const config = modalConfig(target);
   if (!config) return;
   activeModalTarget = target;
+  if (modalCard instanceof HTMLElement) {
+    modalCard.classList.toggle("modal-card--wide", config.variant === "wide");
+  }
   modalEyebrow.textContent = config.eyebrow || "Edit Details";
   modalTitle.textContent = config.title;
   modalSubtitle.textContent = config.subtitle || "";
   modalSubtitle.hidden = !config.subtitle;
-  modalForm.innerHTML = `${config.fields}${modalFooter()}`;
+  modalForm.innerHTML = config.body ?? `${config.fields}${modalFooter(config.submitLabel)}`;
   modalLayer.hidden = false;
   document.body.classList.add("is-modal-open");
   const firstInput = modalForm.querySelector("input, select, textarea");
@@ -793,6 +846,9 @@ function closeModal() {
   activeModalTarget = "";
   modalLayer.hidden = true;
   document.body.classList.remove("is-modal-open");
+  if (modalCard instanceof HTMLElement) {
+    modalCard.classList.remove("modal-card--wide");
+  }
   modalEyebrow.textContent = "";
   modalTitle.textContent = "";
   modalSubtitle.textContent = "";
@@ -802,11 +858,18 @@ function closeModal() {
 function rerenderCurrentRoute() {
   const route = routes[currentRoute] ?? routes.profile;
   const render = views[currentRoute] ?? views.profile;
-  pageTitle.textContent = route.title;
-  pageSubtitle.textContent = route.subtitle;
-  footerLabel.textContent = route.footer;
-  pageTitle.classList.toggle("home-title", currentRoute === "home");
+  renderPageChrome(currentRoute, route);
   pageContent.innerHTML = render(currentRoute);
+}
+
+function renderPageChrome(routeKey, route) {
+  pageTitle.textContent = route.title;
+  pageSubtitle.innerHTML = routeKey === "profile"
+    ? `${route.subtitle} <button class="page-header__text-link" data-edit-target="prequalifying" type="button">Edit Prequalifying Questions</button>`
+    : route.subtitle;
+  pageHeaderActions.innerHTML = "";
+  footerLabel.textContent = route.footer;
+  pageTitle.classList.toggle("home-title", routeKey === "home");
 }
 
 function modalConfig(target) {
@@ -926,6 +989,13 @@ function modalConfig(target) {
         `,
         submitLabel: "Next",
       };
+    case "physician-search-results":
+      return {
+        eyebrow: "Search Results",
+        title: "Physician Search",
+        variant: "wide",
+        body: renderPhysicianSearchResultsModal(),
+      };
     default:
       return null;
   }
@@ -991,8 +1061,8 @@ function modalSelect(label, name, value, options) {
   `;
 }
 
-function modalFooter() {
-  const submitLabel = activeModalTarget === "create-physician" ? "Next" : "Save Changes";
+function modalFooter(submitLabelOverride = "") {
+  const submitLabel = submitLabelOverride || (activeModalTarget === "create-physician" ? "Next" : "Save Changes");
   return `
     <div class="modal-actions">
       <button class="modal-secondary" type="button" data-modal-close>Cancel</button>
@@ -1011,6 +1081,121 @@ function escapeAttribute(value) {
 
 function formatCityStateZip(city, state, zip) {
   return [city, state].filter(Boolean).join(", ") + (zip ? ` ${zip}` : "");
+}
+
+function getFilteredPhysicians() {
+  const { searchState, searchCity, searchName } = profileState.physician;
+  const stateQuery = searchState.trim().toLowerCase();
+  const cityQuery = searchCity.trim().toLowerCase();
+  const nameQuery = searchName.trim().toLowerCase();
+
+  return physicianDirectory.filter((physician) => {
+    const matchesState = !stateQuery || physician.state.toLowerCase().includes(stateQuery);
+    const matchesCity = !cityQuery || physician.city.toLowerCase().includes(cityQuery);
+    const matchesName = !nameQuery || physician.name.toLowerCase().includes(nameQuery);
+    return matchesState && matchesCity && matchesName;
+  });
+}
+
+function renderPhysicianSearchResultsModal() {
+  const results = getFilteredPhysicians();
+  const perPage = 5;
+  const totalPages = Math.max(1, Math.ceil(results.length / perPage));
+  const currentPage = Math.min(physicianResultsPage, totalPages);
+  physicianResultsPage = currentPage;
+  const start = (currentPage - 1) * perPage;
+  const end = Math.min(start + perPage, results.length);
+  const visibleResults = results.slice(start, end);
+  const lastPage = totalPages;
+
+  const rows = visibleResults.length
+    ? visibleResults
+        .map(
+          (physician) => `
+            <article class="physician-modal__row">
+              <div class="physician-modal__identity">
+                <p class="physician-modal__name">${physician.name}</p>
+                <p class="physician-modal__meta">${physician.street}</p>
+                <p class="physician-modal__meta">${physician.city}, ${physician.state}</p>
+              </div>
+              <div class="physician-modal__details">
+                <div>
+                  <p class="physician-modal__title">${physician.title}</p>
+                  <p class="physician-modal__phone">${physician.phone}</p>
+                </div>
+                <button class="physician-modal__select" type="button">Select <span aria-hidden="true">›</span></button>
+              </div>
+            </article>
+          `,
+        )
+        .join("")
+    : `
+      <div class="physician-modal__empty">
+        <p>No physicians match the current search.</p>
+        <button class="physician-create-link physician-create-link--inline" data-edit-target="create-physician" type="button">Create a new physician instead -></button>
+      </div>
+    `;
+
+  return `
+    <section class="physician-modal">
+      <div class="physician-modal__filters">
+        <label class="modal-field">
+          <span class="modal-field__label">State</span>
+          <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchState)}" name="searchState" data-modal-physician-filter="searchState" />
+        </label>
+        <label class="modal-field">
+          <span class="modal-field__label">City</span>
+          <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchCity)}" name="searchCity" data-modal-physician-filter="searchCity" />
+        </label>
+        <label class="modal-field physician-modal__name-field">
+          <span class="modal-field__label">Last Name</span>
+          <div class="physician-modal__search">
+            <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchName)}" name="searchName" data-modal-physician-filter="searchName" />
+            <button class="pill-button physician-modal__search-button" data-physician-search-submit type="button">Search</button>
+          </div>
+        </label>
+      </div>
+      <div class="physician-modal__results">
+        ${rows}
+      </div>
+      <div class="physician-modal__footer">
+        <p>Showing ${results.length ? start + 1 : 0}-${end} of ${results.length} entries</p>
+        ${renderPhysicianPagination(currentPage, totalPages, lastPage)}
+      </div>
+    </section>
+  `;
+}
+
+function renderPhysicianPagination(currentPage, totalPages, lastPage) {
+  const prevDisabled = currentPage === 1;
+  const nextDisabled = currentPage === totalPages;
+  const pageNumbers = new Set([1, currentPage - 1, currentPage, currentPage + 1, lastPage]);
+  const visiblePages = [...pageNumbers]
+    .filter((page) => page >= 1 && page <= totalPages)
+    .sort((left, right) => left - right);
+  const pageButtons = visiblePages
+    .map((page, index) => {
+      const previousPage = visiblePages[index - 1];
+      const needsEllipsis = previousPage && page - previousPage > 1;
+      return `${needsEllipsis ? '<span class="physician-modal__ellipsis">...</span>' : ""}${renderPhysicianPageButton(page, currentPage)}`;
+    })
+    .join("");
+
+  return `
+    <div class="physician-modal__pagination">
+      <button class="physician-modal__pager${prevDisabled ? " is-disabled" : ""}" data-physician-page="${Math.max(currentPage - 1, 1)}" type="button"${prevDisabled ? " disabled" : ""}>Prev</button>
+      <div class="physician-modal__pages">
+        ${pageButtons}
+      </div>
+      <button class="physician-modal__pager${nextDisabled ? " is-disabled" : ""}" data-physician-page="${Math.min(currentPage + 1, totalPages)}" type="button"${nextDisabled ? " disabled" : ""}>Next</button>
+    </div>
+  `;
+}
+
+function renderPhysicianPageButton(page, currentPage) {
+  return `
+    <button class="physician-modal__page${page === currentPage ? " is-active" : ""}" data-physician-page="${page}" type="button">${page}</button>
+  `;
 }
 
 function detailIcon(type) {
