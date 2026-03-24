@@ -8,6 +8,7 @@
   </head>
   <body>
     <div class="app-shell">
+      <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Close navigation"></button>
       <aside class="sidebar" id="sidebar">
         <div class="brand-row">
           <img
@@ -60,6 +61,13 @@
         </footer>
       </main>
     </div>
+
+    <nav class="mobile-tabbar" aria-label="Mobile navigation">
+      <button class="mobile-tabbar__item" data-mobile-route="home" type="button"></button>
+      <button class="mobile-tabbar__item" data-mobile-route="profile" type="button"></button>
+      <button class="mobile-tabbar__item" data-mobile-route="aob" type="button"></button>
+      <button class="mobile-tabbar__item" data-mobile-route="orders" type="button"></button>
+    </nav>
 
     <script type="module" src="./app.js"></script>
   </body>

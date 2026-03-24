@@ -60,8 +60,10 @@ const pageTitle = document.querySelector("#pageTitle");
 const pageSubtitle = document.querySelector("#pageSubtitle");
 const footerLabel = document.querySelector("#footerLabel");
 const navButtons = [...document.querySelectorAll(".nav-item")];
+const mobileNavButtons = [...document.querySelectorAll(".mobile-tabbar__item")];
 const sidebar = document.querySelector("#sidebar");
 const menuButton = document.querySelector("#menuButton");
+const sidebarOverlay = document.querySelector("#sidebarOverlay");
 
 const iconMap = {
   home: homeIcon(),
@@ -102,7 +104,9 @@ syncRoute();
 window.addEventListener("hashchange", syncRoute);
 menuButton.addEventListener("click", () => {
   sidebar.classList.toggle("is-open");
+  sidebarOverlay.classList.toggle("is-visible");
 });
+sidebarOverlay.addEventListener("click", closeSidebar);
 
 function initNav() {
   navButtons.forEach((button) => {
@@ -114,7 +118,20 @@ function initNav() {
     `;
     button.addEventListener("click", () => {
       window.location.hash = routeKey;
-      sidebar.classList.remove("is-open");
+      closeSidebar();
+    });
+  });
+
+  mobileNavButtons.forEach((button) => {
+    const routeKey = button.dataset.mobileRoute;
+    const route = routes[routeKey];
+    button.innerHTML = `
+      <span class="mobile-tabbar__icon" aria-hidden="true">${iconMap[routeKey] ?? documentIcon()}</span>
+      <span class="mobile-tabbar__label">${route.label}</span>
+    `;
+    button.addEventListener("click", () => {
+      window.location.hash = routeKey;
+      closeSidebar();
     });
   });
 }
@@ -133,6 +150,15 @@ function syncRoute() {
   navButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.route === routeKey);
   });
+  mobileNavButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.mobileRoute === routeKey);
+  });
+  closeSidebar();
+}
+
+function closeSidebar() {
+  sidebar.classList.remove("is-open");
+  sidebarOverlay.classList.remove("is-visible");
 }
 
 function renderHome() {
@@ -144,7 +170,7 @@ function renderHome() {
 
       <div class="home-grid">
         <article class="card profile-spotlight">
-          <img class="card__image" src="./image.png" alt="Patient profile card" />
+          <img class="card__image" src="./images/demographics.jpg" alt="Patient demographics" />
           <div class="card__body">
             <p class="card__eyebrow">Profile Snapshot</p>
             <h2 class="card__title">Keep your intake information up to date</h2>
@@ -158,14 +184,14 @@ function renderHome() {
           <div class="muted-rule"></div>
           <div class="product-grid">
             <article class="card product-card">
-              <img class="card__image" src="./No_sketch.png" alt="Diabetic shoes" />
+              <img class="card__image" src="./images/shoes.jpg" alt="Diabetic shoes" />
               <div class="card__body">
                 <p class="card__eyebrow">Footwear</p>
                 <button class="pill-button" type="button">Diabetic Shoes</button>
               </div>
             </article>
             <article class="card product-card">
-              <img class="card__image" src="./V3.png" alt="Continuous glucose monitor" />
+              <img class="card__image" src="./images/cgms.png" alt="Continuous glucose monitor" />
               <div class="card__body">
                 <p class="card__eyebrow">Monitoring</p>
                 <button class="pill-button" type="button">Continuous Glucose Monitor</button>
@@ -313,11 +339,11 @@ function tableCard(title, columns, rows, actionLabel) {
       ? rows
           .map(
             (row) => `
-          <tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>
+          <tr>${row.map((cell, index) => `<td data-label="${columns[index]}">${cell}</td>`).join("")}</tr>
         `,
           )
           .join("")
-      : `<tr><td colspan="${columns.length}">&nbsp;</td></tr>`;
+      : `<tr class="data-table__empty"><td colspan="${columns.length}">No entries yet</td></tr>`;
 
   return `
     <section class="card table-card">
