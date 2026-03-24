@@ -5,11 +5,17 @@ const routes = {
     footer: "Home",
     subtitle: "Review profile progress, eligibility, and the next products available through your portal.",
   },
+  "browse-shoes": {
+    label: "Browse Shoes",
+    title: "Browse Shoes",
+    footer: "Browse Shoes",
+    subtitle: "Explore the current footwear catalog, jump by category, and open the full PDF when you want the complete print layout.",
+  },
   profile: {
     label: "View Profile",
-    title: "Patient Demographics",
+    title: "Prequalifying Questions",
     footer: "Profile",
-    subtitle: "Keep your contact details, caregiver information, and insurance records current.",
+    subtitle: "Review insurance, confirm billing details, and connect the physician information needed to start your order.",
   },
   aob: {
     label: "AOB Form",
@@ -67,6 +73,7 @@ const sidebarOverlay = document.querySelector("#sidebarOverlay");
 
 const iconMap = {
   home: homeIcon(),
+  "browse-shoes": shoeIcon(),
   profile: profileIcon(),
   aob: documentIcon(),
   orders: orderIcon(),
@@ -79,6 +86,7 @@ const iconMap = {
 
 const views = {
   home: renderHome,
+  "browse-shoes": renderBrowseShoes,
   profile: renderProfile,
   aob: renderAob,
   orders: renderOrders,
@@ -97,6 +105,52 @@ const checklistItems = [
   "I have received the following documents: The Welcome Letter, Notice of Privacy Practices, Patient rights and Responsibilities, QMS Return Policy, the Medicare Supplier Standards, Fee Schedule, Emergency Prep, Infection Control, Plan of Service, Confidentiality and the Warranty Information.",
   "If Diabetic Shoes have been ordered, I assume all responsibility for the preventative care of my feet and will not hold QMS responsible for any past, present, or future foot problems.",
   "To immediately notify Quantum Medical Supply PRIOR TO any change or cancellation of my health insurance coverage or joining a Health Maintenance Organization, Preferred Provider Plan or other managed care group.",
+];
+
+const catalogSections = [
+  {
+    id: "cover",
+    title: "Catalog Cover",
+    blurb: "The current Quantum footwear catalog cover with the featured introductory styles.",
+    pages: [{ title: "Footwear Catalog", description: "Catalog cover and lead image.", image: "./images/catalog/page-01.png" }],
+  },
+  {
+    id: "getting-started",
+    title: "How It Works",
+    blurb: "A quick overview of the no-cost insurance route and the discounted direct-purchase route.",
+    pages: [{ title: "2 Ways to Receive Your Shoes", description: "No-cost qualification steps and low-cost purchase path.", image: "./images/catalog/page-02.png" }],
+  },
+  {
+    id: "mens",
+    title: "Men's Shoes",
+    blurb: "Running, casual, dress, and double-depth styles across pages 3 through 6 of the catalog.",
+    pages: [
+      { title: "Men's Shoes: Core Styles", description: "Anodyne and Dr. Comfort athletic and walking shoes.", image: "./images/catalog/page-03.png" },
+      { title: "Men's Shoes: Everyday Comfort", description: "Performance, Carter, Roger, Brian, and more.", image: "./images/catalog/page-04.png" },
+      { title: "Men's Shoes: Dress & Casual", description: "Wing, Frank, Mike, William, Douglas, and Fisherman styles.", image: "./images/catalog/page-05.png" },
+      { title: "Men's Shoes: Double Depth", description: "Ranger, Ruk, double-depth shoes, and wider-fit options.", image: "./images/catalog/page-06.png" },
+    ],
+  },
+  {
+    id: "womens",
+    title: "Women's Shoes",
+    blurb: "Women’s athletic, casual, mary jane, and double-depth styles across pages 7 through 10.",
+    pages: [
+      { title: "Women's Shoes: Everyday Styles", description: "Anodyne and Dr. Comfort casual and walking options.", image: "./images/catalog/page-07.png" },
+      { title: "Women's Shoes: Casual & Slip-On", description: "Annie, Breeze, Betty, Lulu, and related styles.", image: "./images/catalog/page-08.png" },
+      { title: "Women's Shoes: Athletic", description: "Riley, Katy, Victory, Refresh, Diane, and performance styles.", image: "./images/catalog/page-09.png" },
+      { title: "Women's Shoes: Double Depth", description: "Spirit, Lucie X, Mallory, Grace, and wider-fit options.", image: "./images/catalog/page-10.png" },
+    ],
+  },
+  {
+    id: "extras",
+    title: "Additional Products",
+    blurb: "The catalog also calls out CGM coverage and closes with contact information and therapeutic footwear benefits.",
+    pages: [
+      { title: "CGM Coverage", description: "Additional products covered by insurance, including CGM benefits.", image: "./images/catalog/page-11.png" },
+      { title: "Benefits & Contact", description: "Therapeutic footwear benefits, orthotic support, and contact details.", image: "./images/catalog/page-12.png" },
+    ],
+  },
 ];
 
 initNav();
@@ -134,10 +188,19 @@ function initNav() {
       closeSidebar();
     });
   });
+
+  document.addEventListener("input", (event) => {
+    if (!(event.target instanceof HTMLInputElement)) return;
+    if (!event.target.matches("[data-physician-search]")) return;
+    const shell = event.target.closest("[data-physician-shell]");
+    const query = event.target.value.trim();
+    if (!shell) return;
+    shell.classList.toggle("is-search-active", query.length > 0);
+  });
 }
 
 function syncRoute() {
-  const routeKey = window.location.hash.replace("#", "") || "home";
+  const routeKey = window.location.hash.replace("#", "") || "profile";
   const route = routes[routeKey] ?? routes.home;
   const render = views[routeKey] ?? views.home;
 
@@ -206,40 +269,200 @@ function renderHome() {
 
 function renderProfile() {
   return `
-    <div class="stack">
-      <section class="profile-grid">
-        ${infoCard("Patient Details", [
-          detail("person", "First Name", "Nick"),
-          detail("person", "Last Name", "Holroyd"),
-          detail("calendar", "Date of Birth", "02/25/1982"),
-          detail("gender", "Gender", "Male"),
-          detail("device", "Phone #", "(512) 557-5646"),
-          detail("device", "Cell Phone #", ""),
-          detail("mail", "Email", "nickholroyd@gmail.com"),
-          detail("calendar", "Communication Preference", ""),
-        ], "Edit Patient")}
+    <div class="intake-layout">
+      <div class="stack intake-main">
+        <section class="card intake-welcome">
+          <div class="card__body">
+            <p class="intake-welcome__name">Hi Nick,</p>
+            <p class="card__copy">Welcome to the Quantum Medical Supply Portal. Come back here any time to review your order status, order new products, and get help with your order. Let's finish getting you qualified for your medical devices. If you'd like to update any answers from the initial questions, you can do that now.</p>
+            <button class="intake-link" type="button">Edit Prequalifying Questions</button>
+          </div>
+        </section>
 
-        ${infoCard("Caregiver", [
-          detail("person", "First Name", ""),
-          detail("person", "Last Name", ""),
-          detail("device", "Caretaker Phone", ""),
-          detail("mail", "Caretaker Email", ""),
-          detail("group", "Relationship", ""),
-          detail("calendar", "Communication Preference", ""),
-        ], "Edit Caretaker")}
+        <section class="intake-section">
+          <div class="intake-section__heading">
+            <h2>Insurance Information</h2>
+          </div>
+          <div class="card intake-panel">
+            <div class="intake-panel__header">
+              <h3>Primary Insurance</h3>
+              <button class="icon-edit" type="button" aria-label="Edit insurance">Edit</button>
+            </div>
+            <div class="intake-insurance-grid">
+              <article class="card intake-data-card">
+                <div class="surface-card__header">Primary Insurance Details</div>
+                <div class="intake-data-list">
+                  ${profileField("Primary Payer", "United Healthcare")}
+                  ${profileField("Description", "Aetna Medicare Choice (HMO - POS)", true)}
+                  ${profileField("Insurance Type", "Point of Service (POS)")}
+                  ${profileField("Coordination of Benefits", "02/01/2020 - Current", true)}
+                </div>
+              </article>
+              <article class="card intake-data-card">
+                <div class="surface-card__header">Plan Details</div>
+                <div class="intake-data-list">
+                  ${profilePairField("In-Network Deductible", "$20 Initial", "$0 Remaining")}
+                  ${profilePairField("Out of Network Deductible", "$100 Initial", "$0 Remaining", true)}
+                  ${profilePairField("Co-Insurance", "0% In-Network", "20% Out of Network")}
+                  ${profilePairField("Co-Pay", "$0 In-Network", "$10 Out of Network", true)}
+                </div>
+              </article>
+            </div>
+          </div>
 
-        ${infoCard("Home Address", [
-          detail("home", "Address", "123 CERIUM LANE,<br />WEST PALM BEACH, FL 33409"),
-        ], "Edit Address")}
+          <div class="card intake-panel intake-question-panel">
+            <div class="card__body">
+              <p class="intake-question">Do you have a Secondary / Supplemental Insurance?</p>
+              <div class="intake-choice-row" role="radiogroup" aria-label="Secondary insurance">
+                <button class="choice-pill" type="button" aria-pressed="false">Yes</button>
+                <button class="choice-pill is-selected" type="button" aria-pressed="true">No</button>
+              </div>
+            </div>
+          </div>
+        </section>
 
-        ${infoCard("Shipping Address", [
-          detail("home", "Address", ""),
-          detail("person", "Temporary Dates", ""),
-        ], "Edit Address")}
+        <section class="intake-section">
+          <div class="intake-section__heading">
+            <h2>Confirm Billing Address</h2>
+          </div>
+          <div class="card intake-panel">
+            <div class="intake-panel__header">
+              <div></div>
+              <button class="icon-edit" type="button" aria-label="Edit addresses">Edit</button>
+            </div>
+            <div class="intake-address-grid">
+              <article class="card intake-data-card">
+                <div class="surface-card__header">Billing Address</div>
+                <div class="intake-address-body">
+                  <p class="intake-address-label">Address</p>
+                  <p>Nick Holroyd</p>
+                  <p>65 Pin Oak Dr</p>
+                  <p>Scituate, MA 02066</p>
+                </div>
+              </article>
+              <article class="card intake-data-card intake-add-card">
+                <div class="surface-card__header">Shipping Address</div>
+                <div class="intake-add-card__body">
+                  <p>Add a different Shipping Address</p>
+                  <button class="plus-button" type="button" aria-label="Add shipping address">+</button>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="intake-section">
+          <div class="intake-section__heading">
+            <h2>Physician Information</h2>
+          </div>
+          <div class="card intake-panel">
+            <div class="card__body">
+              <p class="intake-question">Please confirm/update your physician information:</p>
+              <div class="physician-search">
+                <div class="physician-search__hero" aria-hidden="true">
+                  <img class="physician-search__hero-image" src="./images/doctor.png" alt="" />
+                  <p>Let's find your physician</p>
+                </div>
+                <div class="physician-search__shell" data-physician-shell>
+                <div class="physician-search__input">
+                  <span>${searchIcon()}</span>
+                  <input type="text" value="" placeholder="Start typing your physician's name" aria-label="Search for physician" data-physician-search />
+                </div>
+                <div class="card physician-results">
+                  ${physicianResult("Marc Vanna", "65 Pin Oak Dr. Scituate, MA")}
+                  ${physicianResult("Marc Vetrano", "65 Pin Oak Dr. Scituate, MA")}
+                  ${physicianResult("See All Search Results", "")}
+                  <div class="physician-results__empty">
+                    <p>Don't see your physician?</p>
+                    <button class="mini-action" type="button">Create a New Physician</button>
+                  </div>
+                </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <button class="intake-continue" type="button">Continue to Product Selection</button>
+      </div>
+
+      <aside class="card intake-summary">
+        <div class="intake-summary__header">
+          <h3>Your Information</h3>
+          <button class="icon-edit" type="button" aria-label="Edit personal information">Edit</button>
+        </div>
+        <div class="stack intake-summary__stack">
+          ${summaryBox("Name", "Nick Holroyd")}
+          ${summaryBox("Date of Birth", "02/25/1982")}
+          ${summaryBox("Email", "nick@quantummedicalsupply.com")}
+          ${summaryBox("Phone", "512-557-5646")}
+        </div>
+      </aside>
+    </div>
+  `;
+}
+
+function renderBrowseShoes() {
+  const sectionLinks = catalogSections
+    .map((section) => `<a class="browse-chip" href="#catalog-${section.id}">${section.title}</a>`)
+    .join("");
+
+  const sections = catalogSections
+    .map(
+      (section) => `
+        <section class="browse-section" id="catalog-${section.id}">
+          <div class="browse-section__header">
+            <div>
+              <p class="card__eyebrow">Catalog Section</p>
+              <h2 class="browse-section__title">${section.title}</h2>
+            </div>
+            <p class="browse-section__copy">${section.blurb}</p>
+          </div>
+          <div class="catalog-grid">
+            ${section.pages
+              .map(
+                (page) => `
+                  <article class="card catalog-card">
+                    <img class="catalog-card__image" src="${page.image}" alt="${page.title}" />
+                    <div class="card__body">
+                      <p class="card__eyebrow">${section.title}</p>
+                      <h3 class="catalog-card__title">${page.title}</h3>
+                      <p class="card__copy">${page.description}</p>
+                      <a class="pill-button catalog-card__button" href="https://portal.quantummedicalsupply.com/assets/organization_3/Best_Selling_Shoe_Catalog.pdf" target="_blank" rel="noreferrer">Open Full PDF</a>
+                    </div>
+                  </article>
+                `,
+              )
+              .join("")}
+          </div>
+        </section>
+      `,
+    )
+    .join("");
+
+  return `
+    <div class="stack browse-page">
+      <section class="browse-hero">
+        <div class="browse-hero__content">
+          <p class="card__eyebrow">2024 Footwear Catalog</p>
+          <h2 class="browse-hero__title">A cleaner way to browse the full Quantum shoe lineup.</h2>
+          <p class="browse-hero__copy">This experience turns the print catalog into a mobile-friendly browse flow. Jump between sections below, review catalog spreads, then open the original PDF if you want the full brochure layout.</p>
+          <div class="browse-actions">
+            <a class="pill-button" href="https://portal.quantummedicalsupply.com/assets/organization_3/Best_Selling_Shoe_Catalog.pdf" target="_blank" rel="noreferrer">Open Catalog PDF</a>
+            <a class="browse-link" href="#catalog-mens">Jump to Men's Shoes</a>
+            <a class="browse-link" href="#catalog-womens">Jump to Women's Shoes</a>
+          </div>
+        </div>
+        <div class="browse-hero__preview">
+          <img src="./images/catalog/page-01.png" alt="Quantum footwear catalog cover" />
+        </div>
       </section>
 
-      ${tableCard("My Insurances", ["Insurance", "Type", "Phone", "Policy", "Status", "Action"], [], "Add Insurance")}
-      ${tableCard("My Physicians", ["Name", "Specialty", "Phone", "Fax", "Address", "Status", "Action"], [], "Add Physician")}
+      <section class="browse-chip-row">
+        ${sectionLinks}
+      </section>
+
+      ${sections}
     </div>
   `;
 }
@@ -361,6 +584,52 @@ function tableCard(title, columns, rows, actionLabel) {
   `;
 }
 
+function profileField(label, value, striped = false) {
+  return `
+    <div class="intake-row${striped ? " is-striped" : ""}">
+      <span class="detail-item__label">${label}</span>
+      <span class="detail-item__value">${value}</span>
+    </div>
+  `;
+}
+
+function profilePairField(label, left, right, striped = false) {
+  return `
+    <div class="intake-row${striped ? " is-striped" : ""}">
+      <span class="detail-item__label">${label}</span>
+      <div class="intake-row__pair">
+        <span class="detail-item__value">${left}</span>
+        <span class="detail-item__value">${right}</span>
+      </div>
+    </div>
+  `;
+}
+
+function physicianResult(name, meta) {
+  const text = meta ? `<p class="physician-results__meta">${meta}</p>` : "";
+  return `
+    <div class="physician-results__row">
+      <div class="physician-results__identity">
+        <span class="physician-results__icon">${doctorIcon()}</span>
+        <div>
+          <p class="physician-results__name">${name}</p>
+          ${text}
+        </div>
+      </div>
+      <button class="physician-results__select" type="button">Select</button>
+    </div>
+  `;
+}
+
+function summaryBox(label, value) {
+  return `
+    <div class="intake-summary__box">
+      <p class="intake-summary__label">${label}</p>
+      <p class="intake-summary__value">${value}</p>
+    </div>
+  `;
+}
+
 function detailIcon(type) {
   switch (type) {
     case "home":
@@ -404,4 +673,16 @@ function supportIcon() {
 
 function signoutIcon() {
   return `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2Zm0 1a5 5 0 1 1 0 10A5 5 0 0 1 8 3Zm2.8 2.5-.7-.7L8 7 5.9 4.8l-.7.7L7.3 7.7l-2.1 2.1.7.7L8 8.4l2.1 2.1.7-.7-2.1-2.1 2.1-2.2Z" fill="currentColor"/></svg>`;
+}
+
+function shoeIcon() {
+  return `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 10.2c.8-.2 1.4-.6 1.8-1.1l1.2-1.7 1.6.7c.8.3 1.6.5 2.5.5h2.1c1.7 0 2.8.8 2.8 2v1H2v-1.4Zm11 .4c-.2-.5-.8-.8-1.8-.8H9.1c-1 0-2-.2-3-.6l-.7-.3-.6.9c-.4.5-.9 1-1.6 1.3H13v-.5ZM11.3 5.1l.5-1 1.7.8-.5 1-1.7-.8Z" fill="currentColor"/></svg>`;
+}
+
+function searchIcon() {
+  return `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M7 2.5a4.5 4.5 0 1 0 2.84 8l2.83 2.82.71-.7-2.83-2.84A4.5 4.5 0 0 0 7 2.5Zm0 1A3.5 3.5 0 1 1 7 10.5 3.5 3.5 0 0 1 7 3.5Z" fill="currentColor"/></svg>`;
+}
+
+function doctorIcon() {
+  return `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2a2.3 2.3 0 1 0 0 4.6A2.3 2.3 0 0 0 8 2Zm0 1a1.3 1.3 0 1 1 0 2.6A1.3 1.3 0 0 1 8 3Zm-3.2 8.6c.2-1.8 1.5-3 3.2-3s3 1.2 3.2 3h1c-.1-1.5-.9-2.8-2.1-3.5l.9-.9V6h-2V4.8H7V6H5v1.2l.9.9a4.4 4.4 0 0 0-2.1 3.5h1Z" fill="currentColor"/></svg>`;
 }
