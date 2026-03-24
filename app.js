@@ -64,12 +64,81 @@ const routes = {
 const pageContent = document.querySelector("#pageContent");
 const pageTitle = document.querySelector("#pageTitle");
 const pageSubtitle = document.querySelector("#pageSubtitle");
+const pageHeaderActions = document.querySelector("#pageHeaderActions");
 const footerLabel = document.querySelector("#footerLabel");
 const navButtons = [...document.querySelectorAll(".nav-item")];
 const mobileNavButtons = [...document.querySelectorAll(".mobile-tabbar__item")];
 const sidebar = document.querySelector("#sidebar");
 const menuButton = document.querySelector("#menuButton");
 const sidebarOverlay = document.querySelector("#sidebarOverlay");
+const modalLayer = document.querySelector("#modalLayer");
+const modalBackdrop = document.querySelector("#modalBackdrop");
+const modalClose = document.querySelector("#modalClose");
+const modalTitle = document.querySelector("#modalTitle");
+const modalForm = document.querySelector("#modalForm");
+const modalEyebrow = document.querySelector("#modalEyebrow");
+const modalSubtitle = document.querySelector("#modalSubtitle");
+
+let currentRoute = "profile";
+let activeModalTarget = "";
+
+const profileState = {
+  prequalifying: {
+    name: "Nick Holroyd",
+    email: "nick@quantummedicalsupply.com",
+    phone: "512-557-5646",
+    dateOfBirth: "02/25/1982",
+  },
+  insurance: {
+    primaryPayer: "United Healthcare",
+    description: "Aetna Medicare Choice (HMO - POS)",
+    insuranceType: "Point of Service (POS)",
+    coordination: "02/01/2020 - Current",
+    inNetworkInitial: "$20 Initial",
+    inNetworkRemaining: "$0 Remaining",
+    outNetworkInitial: "$100 Initial",
+    outNetworkRemaining: "$0 Remaining",
+    coInsuranceIn: "0% In-Network",
+    coInsuranceOut: "20% Out of Network",
+    coPayIn: "$0 In-Network",
+    coPayOut: "$10 Out of Network",
+    hasSecondary: "No",
+    secondaryProvider: "",
+    secondaryPolicyNumber: "",
+  },
+  addresses: {
+    billingName: "Nick Holroyd",
+    billingStreet: "65 Pin Oak Dr",
+    billingCity: "Scituate",
+    billingState: "MA",
+    billingZip: "02066",
+    shippingName: "",
+    shippingStreet: "",
+    shippingCity: "",
+    shippingState: "",
+    shippingZip: "",
+  },
+  personal: {
+    name: "Nick Holroyd",
+    dateOfBirth: "02/25/1982",
+    email: "nick@quantummedicalsupply.com",
+    phone: "512-557-5646",
+  },
+  physician: {
+    searchState: "MA",
+    searchCity: "",
+    searchName: "",
+    npi: "",
+    firstName: "",
+    lastName: "",
+    address1: "",
+    address2: "",
+    city: "",
+    state: "MA",
+    zipCode: "",
+    phoneNumber: "",
+  },
+};
 
 const iconMap = {
   home: homeIcon(),
@@ -161,6 +230,13 @@ menuButton.addEventListener("click", () => {
   sidebarOverlay.classList.toggle("is-visible");
 });
 sidebarOverlay.addEventListener("click", closeSidebar);
+modalBackdrop.addEventListener("click", closeModal);
+modalClose.addEventListener("click", closeModal);
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeModal();
+  }
+});
 
 function initNav() {
   navButtons.forEach((button) => {
@@ -197,15 +273,63 @@ function initNav() {
     if (!shell) return;
     shell.classList.toggle("is-search-active", query.length > 0);
   });
+
+  document.addEventListener("input", (event) => {
+    if (!(event.target instanceof HTMLInputElement)) return;
+    if (!event.target.matches("[data-physician-filter]")) return;
+    const field = event.target.dataset.physicianFilter;
+    profileState.physician[field] = event.target.value;
+    const shell = event.target.closest("[data-physician-shell]");
+    const nameInput = shell?.querySelector("[data-physician-search]");
+    if (nameInput instanceof HTMLInputElement && shell) {
+      shell.classList.toggle("is-search-active", nameInput.value.trim().length > 0);
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    const closeTrigger = event.target.closest("[data-modal-close]");
+    if (closeTrigger) {
+      closeModal();
+      return;
+    }
+    const secondaryChoice = event.target.closest("[data-secondary-choice]");
+    if (secondaryChoice instanceof HTMLElement) {
+      const choice = secondaryChoice.dataset.secondaryChoice;
+      if (choice === "yes") {
+        openModal("supplemental-insurance");
+      } else if (choice === "no") {
+        profileState.insurance.hasSecondary = "No";
+        profileState.insurance.secondaryProvider = "";
+        profileState.insurance.secondaryPolicyNumber = "";
+        rerenderCurrentRoute();
+      }
+      return;
+    }
+    const trigger = event.target.closest("[data-edit-target]");
+    if (!(trigger instanceof HTMLElement)) return;
+    openModal(trigger.dataset.editTarget || "");
+  });
+
+  modalForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const formData = new FormData(modalForm);
+    applyModalChanges(activeModalTarget, formData);
+    closeModal();
+    rerenderCurrentRoute();
+  });
 }
 
 function syncRoute() {
   const routeKey = window.location.hash.replace("#", "") || "profile";
+  currentRoute = routeKey;
   const route = routes[routeKey] ?? routes.home;
   const render = views[routeKey] ?? views.home;
 
   pageTitle.textContent = route.title;
-  pageSubtitle.textContent = route.subtitle;
+  pageSubtitle.innerHTML = routeKey === "profile"
+    ? `${route.subtitle} <button class="page-header__text-link" data-edit-target="prequalifying" type="button">Edit Prequalifying Questions</button>`
+    : route.subtitle;
+  pageHeaderActions.innerHTML = "";
   footerLabel.textContent = route.footer;
   pageTitle.classList.toggle("home-title", routeKey === "home");
   pageContent.innerHTML = render(routeKey);
@@ -271,14 +395,6 @@ function renderProfile() {
   return `
     <div class="intake-layout">
       <div class="stack intake-main">
-        <section class="card intake-welcome">
-          <div class="card__body">
-            <p class="intake-welcome__name">Hi Nick,</p>
-            <p class="card__copy">Welcome to the Quantum Medical Supply Portal. Come back here any time to review your order status, order new products, and get help with your order. Let's finish getting you qualified for your medical devices. If you'd like to update any answers from the initial questions, you can do that now.</p>
-            <button class="intake-link" type="button">Edit Prequalifying Questions</button>
-          </div>
-        </section>
-
         <section class="intake-section">
           <div class="intake-section__heading">
             <h2>Insurance Information</h2>
@@ -286,25 +402,25 @@ function renderProfile() {
           <div class="card intake-panel">
             <div class="intake-panel__header">
               <h3>Primary Insurance</h3>
-              <button class="icon-edit" type="button" aria-label="Edit insurance">Edit</button>
+              <button class="icon-edit" data-edit-target="insurance" type="button" aria-label="Edit insurance">Edit</button>
             </div>
             <div class="intake-insurance-grid">
               <article class="card intake-data-card">
                 <div class="surface-card__header">Primary Insurance Details</div>
                 <div class="intake-data-list">
-                  ${profileField("Primary Payer", "United Healthcare")}
-                  ${profileField("Description", "Aetna Medicare Choice (HMO - POS)", true)}
-                  ${profileField("Insurance Type", "Point of Service (POS)")}
-                  ${profileField("Coordination of Benefits", "02/01/2020 - Current", true)}
+                  ${profileField("Primary Payer", profileState.insurance.primaryPayer)}
+                  ${profileField("Description", profileState.insurance.description, true)}
+                  ${profileField("Insurance Type", profileState.insurance.insuranceType)}
+                  ${profileField("Coordination of Benefits", profileState.insurance.coordination, true)}
                 </div>
               </article>
               <article class="card intake-data-card">
                 <div class="surface-card__header">Plan Details</div>
                 <div class="intake-data-list">
-                  ${profilePairField("In-Network Deductible", "$20 Initial", "$0 Remaining")}
-                  ${profilePairField("Out of Network Deductible", "$100 Initial", "$0 Remaining", true)}
-                  ${profilePairField("Co-Insurance", "0% In-Network", "20% Out of Network")}
-                  ${profilePairField("Co-Pay", "$0 In-Network", "$10 Out of Network", true)}
+                  ${profilePairField("In-Network Deductible", profileState.insurance.inNetworkInitial, profileState.insurance.inNetworkRemaining)}
+                  ${profilePairField("Out of Network Deductible", profileState.insurance.outNetworkInitial, profileState.insurance.outNetworkRemaining, true)}
+                  ${profilePairField("Co-Insurance", profileState.insurance.coInsuranceIn, profileState.insurance.coInsuranceOut)}
+                  ${profilePairField("Co-Pay", profileState.insurance.coPayIn, profileState.insurance.coPayOut, true)}
                 </div>
               </article>
             </div>
@@ -314,9 +430,15 @@ function renderProfile() {
             <div class="card__body">
               <p class="intake-question">Do you have a Secondary / Supplemental Insurance?</p>
               <div class="intake-choice-row" role="radiogroup" aria-label="Secondary insurance">
-                <button class="choice-pill" type="button" aria-pressed="false">Yes</button>
-                <button class="choice-pill is-selected" type="button" aria-pressed="true">No</button>
+                <button class="choice-pill${profileState.insurance.hasSecondary === "Yes" ? " is-selected" : ""}" data-secondary-choice="yes" type="button" aria-pressed="${profileState.insurance.hasSecondary === "Yes"}">Yes</button>
+                <button class="choice-pill${profileState.insurance.hasSecondary === "No" ? " is-selected" : ""}" data-secondary-choice="no" type="button" aria-pressed="${profileState.insurance.hasSecondary === "No"}">No</button>
               </div>
+              ${profileState.insurance.hasSecondary === "Yes" ? `
+                <div class="secondary-insurance-note">
+                  <p><strong>Insurance Provider:</strong> ${profileState.insurance.secondaryProvider}</p>
+                  <p><strong>Policy Number:</strong> ${profileState.insurance.secondaryPolicyNumber}</p>
+                </div>
+              ` : ""}
             </div>
           </div>
         </section>
@@ -326,27 +448,43 @@ function renderProfile() {
             <h2>Confirm Billing Address</h2>
           </div>
           <div class="card intake-panel">
-            <div class="intake-panel__header">
-              <div></div>
-              <button class="icon-edit" type="button" aria-label="Edit addresses">Edit</button>
-            </div>
             <div class="intake-address-grid">
               <article class="card intake-data-card">
-                <div class="surface-card__header">Billing Address</div>
+                <div class="surface-card__header intake-card__header">
+                  <span>Billing Address</span>
+                  <button class="icon-edit" data-edit-target="billing-address" type="button" aria-label="Edit billing address">Edit</button>
+                </div>
                 <div class="intake-address-body">
                   <p class="intake-address-label">Address</p>
-                  <p>Nick Holroyd</p>
-                  <p>65 Pin Oak Dr</p>
-                  <p>Scituate, MA 02066</p>
+                  <p>${profileState.addresses.billingName}</p>
+                  <p>${profileState.addresses.billingStreet}</p>
+                  <p>${formatCityStateZip(profileState.addresses.billingCity, profileState.addresses.billingState, profileState.addresses.billingZip)}</p>
                 </div>
               </article>
-              <article class="card intake-data-card intake-add-card">
-                <div class="surface-card__header">Shipping Address</div>
-                <div class="intake-add-card__body">
-                  <p>Add a different Shipping Address</p>
-                  <button class="plus-button" type="button" aria-label="Add shipping address">+</button>
-                </div>
-              </article>
+              ${profileState.addresses.shippingStreet
+                ? `
+                  <article class="card intake-data-card">
+                    <div class="surface-card__header intake-card__header">
+                      <span>Shipping Address</span>
+                      <button class="icon-edit" data-edit-target="shipping-address" type="button" aria-label="Edit shipping address">Edit</button>
+                    </div>
+                    <div class="intake-address-body">
+                      <p class="intake-address-label">Address</p>
+                      <p>${profileState.addresses.shippingName}</p>
+                      <p>${profileState.addresses.shippingStreet}</p>
+                      <p>${formatCityStateZip(profileState.addresses.shippingCity, profileState.addresses.shippingState, profileState.addresses.shippingZip)}</p>
+                    </div>
+                  </article>
+                `
+                : `
+                  <article class="card intake-data-card intake-add-card">
+                    <div class="surface-card__header">Shipping Address</div>
+                    <div class="intake-add-card__body">
+                      <p>Add a different Shipping Address</p>
+                      <button class="plus-button" data-edit-target="shipping-address" type="button" aria-label="Add shipping address">+</button>
+                    </div>
+                  </article>
+                `}
             </div>
           </div>
         </section>
@@ -357,26 +495,32 @@ function renderProfile() {
           </div>
           <div class="card intake-panel">
             <div class="card__body">
-              <p class="intake-question">Please confirm/update your physician information:</p>
               <div class="physician-search">
                 <div class="physician-search__hero" aria-hidden="true">
                   <img class="physician-search__hero-image" src="./images/doctor.png" alt="" />
                   <p>Let's find your physician</p>
                 </div>
                 <div class="physician-search__shell" data-physician-shell>
-                <div class="physician-search__input">
-                  <span>${searchIcon()}</span>
-                  <input type="text" value="" placeholder="Start typing your physician's name" aria-label="Search for physician" data-physician-search />
-                </div>
-                <div class="card physician-results">
-                  ${physicianResult("Marc Vanna", "65 Pin Oak Dr. Scituate, MA")}
-                  ${physicianResult("Marc Vetrano", "65 Pin Oak Dr. Scituate, MA")}
-                  ${physicianResult("See All Search Results", "")}
-                  <div class="physician-results__empty">
-                    <p>Don't see your physician?</p>
-                    <button class="mini-action" type="button">Create a New Physician</button>
+                  <div class="physician-search__filters">
+                    <div class="physician-search__mini-field">
+                      <span class="physician-search__mini-label">State</span>
+                      <input type="text" value="${escapeAttribute(profileState.physician.searchState)}" placeholder="State" aria-label="Search by state" data-physician-filter="searchState" />
+                    </div>
+                    <div class="physician-search__mini-field">
+                      <span class="physician-search__mini-label">City</span>
+                      <input type="text" value="${escapeAttribute(profileState.physician.searchCity)}" placeholder="City" aria-label="Search by city" data-physician-filter="searchCity" />
+                    </div>
+                    <div class="physician-search__input">
+                      <span>${searchIcon()}</span>
+                      <input type="text" value="${escapeAttribute(profileState.physician.searchName)}" placeholder="Start typing your physician's name" aria-label="Search for physician" data-physician-filter="searchName" data-physician-search />
+                    </div>
                   </div>
-                </div>
+                  <button class="physician-create-link" data-edit-target="create-physician" type="button">Can't find your physician? Create one -></button>
+                  <div class="card physician-results">
+                    ${physicianResult("Marc Vanna", "65 Pin Oak Dr. Scituate, MA")}
+                    ${physicianResult("Marc Vetrano", "65 Pin Oak Dr. Scituate, MA")}
+                    ${physicianResult("See All Search Results", "")}
+                  </div>
                 </div>
               </div>
             </div>
@@ -389,13 +533,13 @@ function renderProfile() {
       <aside class="card intake-summary">
         <div class="intake-summary__header">
           <h3>Your Information</h3>
-          <button class="icon-edit" type="button" aria-label="Edit personal information">Edit</button>
+          <button class="icon-edit" data-edit-target="personal" type="button" aria-label="Edit personal information">Edit</button>
         </div>
         <div class="stack intake-summary__stack">
-          ${summaryBox("Name", "Nick Holroyd")}
-          ${summaryBox("Date of Birth", "02/25/1982")}
-          ${summaryBox("Email", "nick@quantummedicalsupply.com")}
-          ${summaryBox("Phone", "512-557-5646")}
+          ${summaryBox("Name", profileState.personal.name)}
+          ${summaryBox("Date of Birth", profileState.personal.dateOfBirth)}
+          ${summaryBox("Email", profileState.personal.email)}
+          ${summaryBox("Phone", profileState.personal.phone)}
         </div>
       </aside>
     </div>
@@ -628,6 +772,245 @@ function summaryBox(label, value) {
       <p class="intake-summary__value">${value}</p>
     </div>
   `;
+}
+
+function openModal(target) {
+  const config = modalConfig(target);
+  if (!config) return;
+  activeModalTarget = target;
+  modalEyebrow.textContent = config.eyebrow || "Edit Details";
+  modalTitle.textContent = config.title;
+  modalSubtitle.textContent = config.subtitle || "";
+  modalSubtitle.hidden = !config.subtitle;
+  modalForm.innerHTML = `${config.fields}${modalFooter()}`;
+  modalLayer.hidden = false;
+  document.body.classList.add("is-modal-open");
+  const firstInput = modalForm.querySelector("input, select, textarea");
+  if (firstInput instanceof HTMLElement) firstInput.focus();
+}
+
+function closeModal() {
+  activeModalTarget = "";
+  modalLayer.hidden = true;
+  document.body.classList.remove("is-modal-open");
+  modalEyebrow.textContent = "";
+  modalTitle.textContent = "";
+  modalSubtitle.textContent = "";
+  modalForm.innerHTML = "";
+}
+
+function rerenderCurrentRoute() {
+  const route = routes[currentRoute] ?? routes.profile;
+  const render = views[currentRoute] ?? views.profile;
+  pageTitle.textContent = route.title;
+  pageSubtitle.textContent = route.subtitle;
+  footerLabel.textContent = route.footer;
+  pageTitle.classList.toggle("home-title", currentRoute === "home");
+  pageContent.innerHTML = render(currentRoute);
+}
+
+function modalConfig(target) {
+  switch (target) {
+    case "prequalifying":
+      return {
+        eyebrow: "Edit Details",
+        title: "Edit Prequalifying Questions",
+        fields: `
+          ${modalField("Full Name", "name", profileState.prequalifying.name)}
+          ${modalField("Email", "email", profileState.prequalifying.email, "email")}
+          ${modalField("Phone", "phone", profileState.prequalifying.phone, "tel")}
+          ${modalField("Date of Birth", "dateOfBirth", profileState.prequalifying.dateOfBirth)}
+        `,
+      };
+    case "insurance":
+      return {
+        eyebrow: "Edit Details",
+        title: "Edit Insurance Details",
+        fields: `
+          ${modalField("Primary Payer", "primaryPayer", profileState.insurance.primaryPayer)}
+          ${modalField("Description", "description", profileState.insurance.description)}
+          ${modalField("Insurance Type", "insuranceType", profileState.insurance.insuranceType)}
+          ${modalField("Coordination of Benefits", "coordination", profileState.insurance.coordination)}
+          <div class="modal-grid">
+            ${modalField("In-Network Initial", "inNetworkInitial", profileState.insurance.inNetworkInitial)}
+            ${modalField("In-Network Remaining", "inNetworkRemaining", profileState.insurance.inNetworkRemaining)}
+          </div>
+          <div class="modal-grid">
+            ${modalField("Out Network Initial", "outNetworkInitial", profileState.insurance.outNetworkInitial)}
+            ${modalField("Out Network Remaining", "outNetworkRemaining", profileState.insurance.outNetworkRemaining)}
+          </div>
+          <div class="modal-grid">
+            ${modalField("Co-Insurance In", "coInsuranceIn", profileState.insurance.coInsuranceIn)}
+            ${modalField("Co-Insurance Out", "coInsuranceOut", profileState.insurance.coInsuranceOut)}
+          </div>
+          <div class="modal-grid">
+            ${modalField("Co-Pay In", "coPayIn", profileState.insurance.coPayIn)}
+            ${modalField("Co-Pay Out", "coPayOut", profileState.insurance.coPayOut)}
+          </div>
+          ${modalSelect("Secondary / Supplemental Insurance", "hasSecondary", profileState.insurance.hasSecondary, ["No", "Yes"])}
+        `,
+      };
+    case "billing-address":
+      return {
+        eyebrow: "Edit Details",
+        title: "Edit Billing Address",
+        fields: `
+          ${modalField("Billing Name", "billingName", profileState.addresses.billingName)}
+          ${modalField("Billing Street", "billingStreet", profileState.addresses.billingStreet)}
+          <div class="modal-grid modal-grid--address">
+            ${modalField("City", "billingCity", profileState.addresses.billingCity)}
+            ${modalField("State", "billingState", profileState.addresses.billingState)}
+            ${modalField("Zip", "billingZip", profileState.addresses.billingZip)}
+          </div>
+        `,
+      };
+    case "shipping-address":
+      return {
+        eyebrow: "Edit Details",
+        title: profileState.addresses.shippingStreet ? "Edit Shipping Address" : "Add Shipping Address",
+        fields: `
+          ${modalField("Shipping Name", "shippingName", profileState.addresses.shippingName)}
+          ${modalField("Shipping Street", "shippingStreet", profileState.addresses.shippingStreet)}
+          <div class="modal-grid modal-grid--address">
+            ${modalField("City", "shippingCity", profileState.addresses.shippingCity)}
+            ${modalField("State", "shippingState", profileState.addresses.shippingState)}
+            ${modalField("Zip", "shippingZip", profileState.addresses.shippingZip)}
+          </div>
+        `,
+      };
+    case "personal":
+      return {
+        eyebrow: "Edit Details",
+        title: "Edit Personal Information",
+        fields: `
+          ${modalField("Full Name", "name", profileState.personal.name)}
+          ${modalField("Date of Birth", "dateOfBirth", profileState.personal.dateOfBirth)}
+          ${modalField("Email", "email", profileState.personal.email, "email")}
+          ${modalField("Phone", "phone", profileState.personal.phone, "tel")}
+        `,
+      };
+    case "supplemental-insurance":
+      return {
+        eyebrow: "Edit Details",
+        title: "Add Supplemental Insurance",
+        fields: `
+          ${modalField("Insurance Provider", "secondaryProvider", profileState.insurance.secondaryProvider)}
+          ${modalField("Policy Number", "secondaryPolicyNumber", profileState.insurance.secondaryPolicyNumber)}
+        `,
+      };
+    case "create-physician":
+      return {
+        eyebrow: "Create New Physician",
+        title: "Create New Physician",
+        subtitle: "Patient Address & Demographics",
+        fields: `
+          <div class="modal-grid modal-grid--physician">
+            <div class="modal-stack">
+              ${modalField("NPI", "npi", profileState.physician.npi)}
+              ${modalField("First Name", "firstName", profileState.physician.firstName)}
+              ${modalField("Last Name", "lastName", profileState.physician.lastName)}
+            </div>
+            <div class="modal-stack">
+              ${modalField("Address 1", "address1", profileState.physician.address1)}
+              ${modalField("Address 2", "address2", profileState.physician.address2)}
+              <div class="modal-grid modal-grid--address">
+                ${modalField("City", "city", profileState.physician.city)}
+                ${modalField("State", "state", profileState.physician.state)}
+                ${modalField("Zip Code", "zipCode", profileState.physician.zipCode)}
+              </div>
+            </div>
+            <div class="modal-stack">
+              ${modalField("Phone Number", "phoneNumber", profileState.physician.phoneNumber, "tel")}
+            </div>
+          </div>
+        `,
+        submitLabel: "Next",
+      };
+    default:
+      return null;
+  }
+}
+
+function applyModalChanges(target, formData) {
+  const values = Object.fromEntries(formData.entries());
+  switch (target) {
+    case "prequalifying":
+      Object.assign(profileState.prequalifying, values);
+      Object.assign(profileState.personal, values);
+      break;
+    case "insurance":
+      Object.assign(profileState.insurance, values);
+      break;
+    case "billing-address":
+      profileState.addresses.billingName = values.billingName || "";
+      profileState.addresses.billingStreet = values.billingStreet || "";
+      profileState.addresses.billingCity = values.billingCity || "";
+      profileState.addresses.billingState = values.billingState || "";
+      profileState.addresses.billingZip = values.billingZip || "";
+      break;
+    case "shipping-address":
+      profileState.addresses.shippingName = values.shippingName || "";
+      profileState.addresses.shippingStreet = values.shippingStreet || "";
+      profileState.addresses.shippingCity = values.shippingCity || "";
+      profileState.addresses.shippingState = values.shippingState || "";
+      profileState.addresses.shippingZip = values.shippingZip || "";
+      break;
+    case "personal":
+      Object.assign(profileState.personal, values);
+      break;
+    case "supplemental-insurance":
+      profileState.insurance.hasSecondary = "Yes";
+      profileState.insurance.secondaryProvider = values.secondaryProvider || "";
+      profileState.insurance.secondaryPolicyNumber = values.secondaryPolicyNumber || "";
+      break;
+    case "create-physician":
+      Object.assign(profileState.physician, values);
+      break;
+    default:
+      break;
+  }
+}
+
+function modalField(label, name, value, type = "text") {
+  return `
+    <label class="modal-field">
+      <span class="modal-field__label">${label}</span>
+      <input class="modal-input" type="${type}" name="${name}" value="${escapeAttribute(value)}" />
+    </label>
+  `;
+}
+
+function modalSelect(label, name, value, options) {
+  return `
+    <label class="modal-field">
+      <span class="modal-field__label">${label}</span>
+      <select class="modal-input" name="${name}">
+        ${options.map((option) => `<option value="${option}"${option === value ? " selected" : ""}>${option}</option>`).join("")}
+      </select>
+    </label>
+  `;
+}
+
+function modalFooter() {
+  const submitLabel = activeModalTarget === "create-physician" ? "Next" : "Save Changes";
+  return `
+    <div class="modal-actions">
+      <button class="modal-secondary" type="button" data-modal-close>Cancel</button>
+      <button class="pill-button" type="submit">${submitLabel}</button>
+    </div>
+  `;
+}
+
+function escapeAttribute(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function formatCityStateZip(city, state, zip) {
+  return [city, state].filter(Boolean).join(", ") + (zip ? ` ${zip}` : "");
 }
 
 function detailIcon(type) {

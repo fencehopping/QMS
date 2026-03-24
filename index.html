@@ -46,8 +46,13 @@
               </button>
               <span class="page-eyebrow">Patient Portal</span>
             </div>
-            <h1 id="pageTitle"></h1>
-            <p class="page-subtitle" id="pageSubtitle"></p>
+            <div class="page-header__content">
+              <div class="page-header__copy">
+                <h1 id="pageTitle"></h1>
+                <p class="page-subtitle" id="pageSubtitle"></p>
+              </div>
+              <div class="page-header__actions" id="pageHeaderActions"></div>
+            </div>
           </div>
           <div id="pageContent"></div>
         </section>
@@ -69,6 +74,21 @@
       <button class="mobile-tabbar__item" data-mobile-route="profile" type="button"></button>
       <button class="mobile-tabbar__item" data-mobile-route="orders" type="button"></button>
     </nav>
+
+    <div class="modal-layer" id="modalLayer" hidden>
+      <button class="modal-layer__backdrop" id="modalBackdrop" type="button" aria-label="Close dialog"></button>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-card__header">
+          <div>
+            <p class="card__eyebrow" id="modalEyebrow">Edit Details</p>
+            <h2 id="modalTitle"></h2>
+            <p class="modal-card__subtitle" id="modalSubtitle" hidden></p>
+          </div>
+          <button class="modal-close" id="modalClose" type="button" aria-label="Close dialog">Close</button>
+        </div>
+        <form class="modal-form" id="modalForm"></form>
+      </div>
+    </div>
 
     <script type="module" src="./app.js"></script>
   </body>
