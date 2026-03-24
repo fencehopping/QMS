@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quantum Medical Patient Portal</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand-row">
+          <img
+            class="brand-logo"
+            src="./logo.png"
+            alt="Quantum Medical"
+          />
+          <button class="toggle-switch" type="button" aria-label="Toggle sidebar theme">
+            <span></span>
+          </button>
+        </div>
+
+        <nav class="nav-list" aria-label="Portal navigation">
+          <button class="nav-item" data-route="home" type="button"></button>
+          <button class="nav-item" data-route="profile" type="button"></button>
+          <button class="nav-item" data-route="aob" type="button"></button>
+          <button class="nav-item" data-route="orders" type="button"></button>
+          <button class="nav-item nav-item--muted" data-route="records" type="button"></button>
+          <button class="nav-item nav-item--muted" data-route="invoices" type="button"></button>
+          <button class="nav-item nav-item--muted" data-route="support" type="button"></button>
+          <button class="nav-item nav-item--muted" data-route="security" type="button"></button>
+          <button class="nav-item nav-item--muted" data-route="signout" type="button"></button>
+        </nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <button class="menu-button" id="menuButton" type="button" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <div class="topbar-actions" aria-label="Quick actions">
+            <button class="icon-button" type="button" aria-label="Alerts"></button>
+            <button class="icon-button" type="button" aria-label="Cart"></button>
+            <button class="icon-button" type="button" aria-label="Messages"></button>
+          </div>
+        </header>
+
+        <section class="page-frame">
+          <div class="page-header">
+            <h1 id="pageTitle"></h1>
+          </div>
+          <div id="pageContent"></div>
+        </section>
+
+        <footer class="portal-footer">
+          <div class="footer-label" id="footerLabel"></div>
+          <div class="footer-rule"></div>
+          <div class="footer-brand">
+            <img src="./logo.png" alt="" />
+            <p>&copy; 2026 Quantum Medical Supply, INC<br />All rights reserved</p>
+          </div>
+        </footer>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
