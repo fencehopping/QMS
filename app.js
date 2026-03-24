@@ -3,51 +3,61 @@ const routes = {
     label: "Home",
     title: "Welcome Back Nick Holroyd",
     footer: "Home",
+    subtitle: "Review profile progress, eligibility, and the next products available through your portal.",
   },
   profile: {
     label: "View Profile",
     title: "Patient Demographics",
     footer: "Profile",
+    subtitle: "Keep your contact details, caregiver information, and insurance records current.",
   },
   aob: {
     label: "AOB Form",
     title: "Assignment of Benefits",
     footer: "Assignment of Benefits",
+    subtitle: "Confirm required Medicare acknowledgements to keep monthly shipments moving without delay.",
   },
   orders: {
     label: "My Orders",
     title: "Order Status",
     footer: "My Orders",
+    subtitle: "Track shipments, delivery status, and any supply activity tied to your account.",
   },
   records: {
     label: "Medical Records",
     title: "Medical Records",
     footer: "Medical Records",
+    subtitle: "Review uploaded documentation and paperwork associated with your care.",
   },
   invoices: {
     label: "My Invoices",
     title: "Invoices",
     footer: "Invoices",
+    subtitle: "View billing summaries, payment history, and claim-related documents.",
   },
   support: {
     label: "Support",
     title: "Support",
     footer: "Support",
+    subtitle: "Get help with portal questions, shipments, and account issues.",
   },
   security: {
     label: "Login & Security",
     title: "Login & Security",
     footer: "Login & Security",
+    subtitle: "Manage sign-in details and account access settings.",
   },
   signout: {
     label: "Sign Out",
     title: "Signed Out",
     footer: "Sign Out",
+    subtitle: "You can safely leave the portal or sign back in when needed.",
   },
 };
 
 const pageContent = document.querySelector("#pageContent");
 const pageTitle = document.querySelector("#pageTitle");
+const pageSubtitle = document.querySelector("#pageSubtitle");
 const footerLabel = document.querySelector("#footerLabel");
 const navButtons = [...document.querySelectorAll(".nav-item")];
 const sidebar = document.querySelector("#sidebar");
@@ -115,6 +125,7 @@ function syncRoute() {
   const render = views[routeKey] ?? views.home;
 
   pageTitle.textContent = route.title;
+  pageSubtitle.textContent = route.subtitle;
   footerLabel.textContent = route.footer;
   pageTitle.classList.toggle("home-title", routeKey === "home");
   pageContent.innerHTML = render(routeKey);
@@ -132,26 +143,31 @@ function renderHome() {
       </div>
 
       <div class="home-grid">
-        <article class="card">
+        <article class="card profile-spotlight">
           <img class="card__image" src="./image.png" alt="Patient profile card" />
           <div class="card__body">
+            <p class="card__eyebrow">Profile Snapshot</p>
+            <h2 class="card__title">Keep your intake information up to date</h2>
+            <p class="card__copy">Verify personal details, confirm communication preferences, and update shipping information before your next order.</p>
             <button class="pill-button card__cta" type="button">My Profile</button>
           </div>
         </article>
 
-        <div class="stack">
+        <div class="stack home-content">
           <h2 class="eligibility-copy">Did you know you may be eligible for the following products at no or little cost to you?</h2>
           <div class="muted-rule"></div>
           <div class="product-grid">
             <article class="card product-card">
               <img class="card__image" src="./No_sketch.png" alt="Diabetic shoes" />
               <div class="card__body">
+                <p class="card__eyebrow">Footwear</p>
                 <button class="pill-button" type="button">Diabetic Shoes</button>
               </div>
             </article>
             <article class="card product-card">
               <img class="card__image" src="./V3.png" alt="Continuous glucose monitor" />
               <div class="card__body">
+                <p class="card__eyebrow">Monitoring</p>
                 <button class="pill-button" type="button">Continuous Glucose Monitor</button>
               </div>
             </article>
