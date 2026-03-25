@@ -162,6 +162,7 @@ button {
   width: 18px;
   height: 18px;
   color: currentColor;
+  font-size: 16px;
 }
 
 .nav-item__label {
@@ -946,7 +947,7 @@ button {
 }
 
 .physician-search__hero-image {
-  width: 132px;
+  width: 198px;
   height: auto;
   object-fit: contain;
 }
@@ -2203,6 +2204,7 @@ button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    font-size: 16px;
   }
 
   .mobile-tabbar__label {

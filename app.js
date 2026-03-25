@@ -153,14 +153,14 @@ const physicianSearchState = {
 const iconMap = {
   home: homeIcon(),
   "browse-shoes": shoeIcon(),
-  profile: profileIcon(),
+  profile: fontAwesomeIcon("fa-user"),
   aob: documentIcon(),
-  orders: orderIcon(),
+  orders: fontAwesomeIcon("fa-cart-shopping"),
   records: orderIcon(),
   invoices: documentIcon(),
-  support: supportIcon(),
-  security: supportIcon(),
-  signout: signoutIcon(),
+  support: fontAwesomeIcon("fa-circle-question"),
+  security: fontAwesomeIcon("fa-lock"),
+  signout: fontAwesomeIcon("fa-right-from-bracket"),
 };
 
 const views = {
@@ -1665,6 +1665,10 @@ function detailIcon(type) {
 
 function homeIcon() {
   return `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 6.8 8 2l6 4.8V14H2V6.8Zm1.4.7v5.1h9.2V7.5L8 3.8 3.4 7.5Zm2.1 5.1V8.7h5v3.9h-5Z" fill="currentColor"/></svg>`;
+}
+
+function fontAwesomeIcon(iconClassName) {
+  return `<i class="fa-solid ${iconClassName}" aria-hidden="true"></i>`;
 }
 
 function profileIcon() {
