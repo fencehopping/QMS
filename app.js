@@ -79,6 +79,7 @@ const modalForm = document.querySelector("#modalForm");
 const modalEyebrow = document.querySelector("#modalEyebrow");
 const modalSubtitle = document.querySelector("#modalSubtitle");
 const modalCard = document.querySelector(".modal-card");
+const hiddenNavRoutes = new Set(["home", "browse-shoes", "aob", "records", "invoices"]);
 
 let currentRoute = "profile";
 let activeModalTarget = "";
@@ -151,6 +152,8 @@ const physicianSearchState = {
   error: "",
   hasSearched: false,
   currentPage: 1,
+  sortField: "firstName",
+  sortDirection: "asc",
 };
 
 const iconMap = {
@@ -190,7 +193,40 @@ const checklistItems = [
 ];
 
 const physicianApiBase = "/api/physicians";
-const physicianResultsPerPage = 5;
+const physicianResultsPerPage = 50;
+const hiddenPhysicianTitleKeywords = [
+  "acupuncturist",
+  "advanced practice midwife",
+  "anesthesiology",
+  "audiologist",
+  "behavior analyst",
+  "behavior technician",
+  "chiropractor",
+  "counselor",
+  "dentist",
+  "developmental therapist",
+  "homemaker",
+  "interpreter",
+  "licensed practical nurse",
+  "marriage & family therapist",
+  "massage therapist",
+  "nurse anesthetist, certified registered",
+  "occupational therapist",
+  "ophthalmology",
+  "peer specialist",
+  "pharmacist",
+  "physical medicine & rehabilitation",
+  "psychologist",
+  "social worker",
+  "specialist",
+  "speech-language pathologist",
+  "technician",
+].map((title) => title
+  .trim()
+  .replace(/\s+/g, " ")
+  .replace(/&/g, "and")
+  .replace(/[/-]/g, " ")
+  .toLowerCase());
 
 const catalogSections = [
   {
@@ -258,6 +294,8 @@ function initNav() {
   navButtons.forEach((button) => {
     const routeKey = button.dataset.route;
     const route = routes[routeKey];
+    if (!route) return;
+    button.hidden = hiddenNavRoutes.has(routeKey);
     button.innerHTML = `
       <span class="nav-item__icon" aria-hidden="true">${iconMap[routeKey] ?? documentIcon()}</span>
       <span class="nav-item__label">${route.label}</span>
@@ -271,6 +309,8 @@ function initNav() {
   mobileNavButtons.forEach((button) => {
     const routeKey = button.dataset.mobileRoute;
     const route = routes[routeKey];
+    if (!route) return;
+    button.hidden = hiddenNavRoutes.has(routeKey);
     button.innerHTML = `
       <span class="mobile-tabbar__icon" aria-hidden="true">${iconMap[routeKey] ?? documentIcon()}</span>
       <span class="mobile-tabbar__label">${route.label}</span>
@@ -314,6 +354,14 @@ function initNav() {
   });
 
   document.addEventListener("click", (event) => {
+    const physicianShell = document.querySelector("[data-physician-search-region]");
+    if (
+      physicianShell instanceof HTMLElement &&
+      !physicianShell.contains(event.target instanceof Node ? event.target : null)
+    ) {
+      closePhysicianSuggestions();
+    }
+
     const closeTrigger = event.target.closest("[data-modal-close]");
     if (closeTrigger) {
       closeModal();
@@ -342,6 +390,20 @@ function initNav() {
     if (physicianSearchSubmit) {
       physicianResultsPage = 1;
       void fetchPhysicians({ page: 1, openModal: true });
+      return;
+    }
+    const physicianSortTrigger = event.target.closest("[data-physician-sort]");
+    if (physicianSortTrigger instanceof HTMLElement) {
+      const requestedSortField = physicianSortTrigger.dataset.physicianSort;
+      if (requestedSortField === "city" || requestedSortField === "firstName") {
+        if (physicianSearchState.sortField === requestedSortField) {
+          physicianSearchState.sortDirection = physicianSearchState.sortDirection === "asc" ? "desc" : "asc";
+        } else {
+          physicianSearchState.sortField = requestedSortField;
+          physicianSearchState.sortDirection = "asc";
+        }
+        refreshPhysicianSearchUi({ openModal: activeModalTarget === "physician-search-results" });
+      }
       return;
     }
     const physicianPageTrigger = event.target.closest("[data-physician-page]");
@@ -556,11 +618,7 @@ function renderProfile() {
                       <span class="physician-search__mini-label">State</span>
                       <input type="text" value="${escapeAttribute(profileState.physician.searchState)}" placeholder="State" aria-label="Search by state" data-physician-filter="searchState" />
                     </div>
-                    <div class="physician-search__mini-field">
-                      <span class="physician-search__mini-label">City</span>
-                      <input type="text" value="${escapeAttribute(profileState.physician.searchCity)}" placeholder="City" aria-label="Search by city" data-physician-filter="searchCity" />
-                    </div>
-                    <div class="physician-search__name-stack">
+                    <div class="physician-search__name-stack" data-physician-search-region>
                       <div class="physician-search__input">
                         <span>${searchIcon()}</span>
                         <input type="text" value="${escapeAttribute(profileState.physician.searchName)}" placeholder="Start typing your physician's name" aria-label="Search for physician" data-physician-filter="searchName" data-physician-search />
@@ -832,6 +890,7 @@ function openModal(target) {
   activeModalTarget = target;
   if (modalCard instanceof HTMLElement) {
     modalCard.classList.toggle("modal-card--wide", config.variant === "wide");
+    modalCard.classList.toggle("modal-card--physician-results", target === "physician-search-results");
   }
   modalEyebrow.textContent = config.eyebrow || "Edit Details";
   modalTitle.textContent = config.title;
@@ -850,6 +909,7 @@ function closeModal() {
   document.body.classList.remove("is-modal-open");
   if (modalCard instanceof HTMLElement) {
     modalCard.classList.remove("modal-card--wide");
+    modalCard.classList.remove("modal-card--physician-results");
   }
   modalEyebrow.textContent = "";
   modalTitle.textContent = "";
@@ -1086,15 +1146,18 @@ function formatCityStateZip(city, state, zip) {
 }
 
 function renderPhysicianSearchResultsModal() {
-  const results = physicianSearchState.items;
+  const results = getSortedPhysicianResults();
   const totalResults = physicianSearchState.total;
   const perPage = physicianResultsPerPage;
   const totalPages = Math.max(1, Math.ceil(totalResults / perPage));
   const currentPage = Math.min(physicianResultsPage, totalPages);
   physicianResultsPage = currentPage;
   const start = (currentPage - 1) * perPage;
-  const end = Math.min(start + results.length, totalResults);
+  const pagedResults = results.slice(start, start + perPage);
+  const end = Math.min(start + pagedResults.length, totalResults);
   const lastPage = totalPages;
+  const sortLabel = physicianSearchState.sortField === "city" ? "City" : "First Name";
+  const sortDirectionLabel = physicianSearchState.sortDirection === "asc" ? "Ascending" : "Descending";
 
   const rows = physicianSearchState.loading
     ? `
@@ -1108,8 +1171,8 @@ function renderPhysicianSearchResultsModal() {
           <p>${physicianSearchState.error}</p>
         </div>
       `
-      : results.length
-        ? results
+      : pagedResults.length
+        ? pagedResults
         .map(
           (physician) => `
             <article class="physician-modal__row">
@@ -1138,31 +1201,53 @@ function renderPhysicianSearchResultsModal() {
 
   return `
     <section class="physician-modal">
-      <div class="physician-modal__filters">
-        <label class="modal-field">
-          <span class="modal-field__label">State</span>
-          <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchState)}" name="searchState" data-modal-physician-filter="searchState" />
-        </label>
-        <label class="modal-field">
-          <span class="modal-field__label">City</span>
-          <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchCity)}" name="searchCity" data-modal-physician-filter="searchCity" />
-        </label>
-        <label class="modal-field physician-modal__name-field">
-          <span class="modal-field__label">Last Name</span>
-          <div class="physician-modal__search">
-            <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchName)}" name="searchName" data-modal-physician-filter="searchName" />
-            <button class="pill-button physician-modal__search-button" data-physician-search-submit type="button">Search</button>
+      <div class="physician-modal__topbar">
+        <div class="physician-modal__filters">
+          <label class="modal-field">
+            <span class="modal-field__label">State</span>
+            <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchState)}" name="searchState" data-modal-physician-filter="searchState" />
+          </label>
+          <label class="modal-field">
+            <span class="modal-field__label">City</span>
+            <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchCity)}" name="searchCity" data-modal-physician-filter="searchCity" />
+          </label>
+          <label class="modal-field physician-modal__name-field">
+            <span class="modal-field__label">Last Name</span>
+            <div class="physician-modal__search">
+              <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchName)}" name="searchName" data-modal-physician-filter="searchName" />
+              <button class="pill-button physician-modal__search-button" data-physician-search-submit type="button">Search</button>
+            </div>
+          </label>
+        </div>
+        <div class="physician-modal__sortbar">
+          <p class="physician-modal__sort-label">Sort: ${sortLabel} (${sortDirectionLabel})</p>
+          <div class="physician-modal__sort-actions">
+            ${renderPhysicianSortButton("firstName", "First Name")}
+            ${renderPhysicianSortButton("city", "City")}
           </div>
-        </label>
+        </div>
       </div>
-      <div class="physician-modal__results">
-        ${rows}
-      </div>
-      <div class="physician-modal__footer">
-        <p>Showing ${totalResults ? start + 1 : 0}-${end} of ${totalResults} entries</p>
-        ${renderPhysicianPagination(currentPage, totalPages, lastPage)}
+      <div class="physician-modal__scroll-region">
+        <div class="physician-modal__results">
+          ${rows}
+        </div>
+        <div class="physician-modal__footer">
+          <p>Showing ${totalResults ? start + 1 : 0}-${end} of ${totalResults} entries</p>
+          ${renderPhysicianPagination(currentPage, totalPages, lastPage)}
+        </div>
       </div>
     </section>
+  `;
+}
+
+function renderPhysicianSortButton(field, label) {
+  const isActive = physicianSearchState.sortField === field;
+  const direction = isActive ? physicianSearchState.sortDirection : "asc";
+  const arrow = direction === "asc" ? "↑" : "↓";
+  return `
+    <button class="physician-modal__sort-button${isActive ? " is-active" : ""}" data-physician-sort="${field}" type="button" aria-pressed="${isActive ? "true" : "false"}">
+      ${label} <span aria-hidden="true">${arrow}</span>
+    </button>
   `;
 }
 
@@ -1197,6 +1282,29 @@ function renderPhysicianPageButton(page, currentPage) {
   return `
     <button class="physician-modal__page${page === currentPage ? " is-active" : ""}" data-physician-page="${page}" type="button">${page}</button>
   `;
+}
+
+function getSortedPhysicianResults() {
+  const items = [...physicianSearchState.items];
+  const direction = physicianSearchState.sortDirection === "desc" ? -1 : 1;
+
+  items.sort((left, right) => {
+    const leftValue = getPhysicianSortValue(left, physicianSearchState.sortField);
+    const rightValue = getPhysicianSortValue(right, physicianSearchState.sortField);
+    const primaryComparison = leftValue.localeCompare(rightValue, undefined, { sensitivity: "base" });
+    if (primaryComparison !== 0) {
+      return primaryComparison * direction;
+    }
+    return left.name.localeCompare(right.name, undefined, { sensitivity: "base" }) * direction;
+  });
+
+  return items;
+}
+
+function getPhysicianSortValue(physician, field) {
+  if (field === "city") return physician.city || "";
+  if (field === "firstName") return physician.firstName || physician.name || "";
+  return physician.lastName || physician.name || "";
 }
 
 function renderPhysicianSuggestions() {
@@ -1267,7 +1375,9 @@ async function fetchPhysicians({ page = 1, openModal = false } = {}) {
       throw new Error(data.Errors[0].description || "The CMS lookup did not return physician results.");
     }
 
-    physicianSearchState.items = Array.isArray(data.results) ? data.results.map(mapPhysicianResult) : [];
+    physicianSearchState.items = Array.isArray(data.results)
+      ? data.results.map(mapPhysicianResult).filter(shouldShowPhysicianResult)
+      : [];
     physicianSearchState.total = physicianSearchState.items.length;
     physicianSearchState.loading = false;
     physicianSearchState.error = "";
@@ -1302,6 +1412,13 @@ function refreshPhysicianSearchUi({ openModal: shouldOpenModal = false } = {}) {
   }
 }
 
+function closePhysicianSuggestions() {
+  const shell = document.querySelector("[data-physician-shell]");
+  if (shell) {
+    shell.classList.remove("is-search-active");
+  }
+}
+
 function buildPhysicianSearchUrl() {
   const params = new URLSearchParams({
     version: "2.1",
@@ -1329,11 +1446,12 @@ function buildPhysicianSearchUrl() {
 
 function mapPhysicianResult(result) {
   const basic = result.basic || {};
+  const taxonomies = result.taxonomies || [];
   const address = (result.addresses || []).find((item) => item.address_purpose === "LOCATION")
     || (result.addresses || [])[0]
     || {};
-  const taxonomy = (result.taxonomies || []).find((item) => item.primary)
-    || (result.taxonomies || [])[0]
+  const taxonomy = taxonomies.find((item) => item.primary)
+    || taxonomies[0]
     || {};
   const name = [basic.first_name, basic.last_name].filter(Boolean).join(" ")
     || basic.organization_name
@@ -1347,6 +1465,7 @@ function mapPhysicianResult(result) {
     firstName: basic.first_name || "",
     lastName: basic.last_name || "",
     title: taxonomy.desc || "Physician",
+    taxonomyTitles: taxonomies.map((item) => item.desc || "").filter(Boolean),
     street: [address.address_1, address.address_2].filter(Boolean).join(" "),
     address1: address.address_1 || "",
     address2: address.address_2 || "",
@@ -1355,6 +1474,22 @@ function mapPhysicianResult(result) {
     zipCode: postalCode,
     phone: address.telephone_number || "",
   };
+}
+
+function shouldShowPhysicianResult(physician) {
+  const titles = [physician.title, ...(physician.taxonomyTitles || [])]
+    .map(normalizePhysicianTitle)
+    .filter(Boolean);
+  return !titles.some((title) => hiddenPhysicianTitleKeywords.some((keyword) => title.includes(keyword)));
+}
+
+function normalizePhysicianTitle(title) {
+  return String(title || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/&/g, "and")
+    .replace(/[/-]/g, " ")
+    .toLowerCase();
 }
 
 function applyPhysicianSelection(physician) {
