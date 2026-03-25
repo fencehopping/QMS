@@ -1389,12 +1389,19 @@ button {
   width: 100%;
   min-height: 54px;
   border-radius: 12px;
-  background: linear-gradient(180deg, rgba(39, 170, 225, 0.38), rgba(39, 170, 225, 0.22));
+  background: #27aae1;
   color: white;
   font-size: 1rem;
   font-weight: 700;
-  box-shadow: 0 10px 24px rgba(39, 170, 225, 0.18);
+  box-shadow: 0 10px 24px rgba(39, 170, 225, 0.22);
   cursor: pointer;
+}
+
+.intake-continue:disabled {
+  background: #b8c2cc;
+  color: rgba(255, 255, 255, 0.82);
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 .intake-summary {

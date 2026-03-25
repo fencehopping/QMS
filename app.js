@@ -83,6 +83,7 @@ const hiddenNavRoutes = new Set(["home", "browse-shoes", "aob", "records", "invo
 
 let currentRoute = "profile";
 let activeModalTarget = "";
+let activePhysicianSlot = "primary";
 let physicianResultsPage = 1;
 let physicianSearchRequestId = 0;
 let physicianSearchDebounce = 0;
@@ -133,15 +134,8 @@ const profileState = {
     searchState: "MA",
     searchCity: "",
     searchName: "",
-    npi: "",
-    firstName: "",
-    lastName: "",
-    address1: "",
-    address2: "",
-    city: "",
-    state: "MA",
-    zipCode: "",
-    phoneNumber: "",
+    primary: emptyPhysicianRecord(),
+    secondary: emptyPhysicianRecord(),
   },
 };
 
@@ -382,8 +376,16 @@ function initNav() {
     }
     const physicianSearchTrigger = event.target.closest("[data-open-physician-results]");
     if (physicianSearchTrigger) {
+      activePhysicianSlot = "primary";
       physicianResultsPage = 1;
       void fetchPhysicians({ page: 1, openModal: true });
+      return;
+    }
+    const physicianPickerTrigger = event.target.closest("[data-open-physician-picker]");
+    if (physicianPickerTrigger instanceof HTMLElement) {
+      const requestedSlot = physicianPickerTrigger.dataset.openPhysicianPicker;
+      activePhysicianSlot = requestedSlot === "secondary" ? "secondary" : "primary";
+      openPhysicianPicker();
       return;
     }
     const physicianSearchSubmit = event.target.closest("[data-physician-search-submit]");
@@ -504,6 +506,7 @@ function renderHome() {
 }
 
 function renderProfile() {
+  const canContinueToProductSelection = isProfileReadyForProductSelection();
   return `
     <div class="intake-layout">
       <div class="stack intake-main">
@@ -605,37 +608,10 @@ function renderProfile() {
           <div class="intake-section__heading">
             <h2>Physician Information</h2>
           </div>
-          <div class="card intake-panel">
-            <div class="card__body">
-              <div class="physician-search">
-                <div class="physician-search__hero" aria-hidden="true">
-                  <img class="physician-search__hero-image" src="./images/doctor.png" alt="" />
-                  <p>Let's find your physician</p>
-                </div>
-                <div class="physician-search__shell" data-physician-shell>
-                  <div class="physician-search__filters">
-                    <div class="physician-search__mini-field">
-                      <span class="physician-search__mini-label">State</span>
-                      <input type="text" value="${escapeAttribute(profileState.physician.searchState)}" placeholder="State" aria-label="Search by state" data-physician-filter="searchState" />
-                    </div>
-                    <div class="physician-search__name-stack" data-physician-search-region>
-                      <div class="physician-search__input">
-                        <span>${searchIcon()}</span>
-                        <input type="text" value="${escapeAttribute(profileState.physician.searchName)}" placeholder="Start typing your physician's name" aria-label="Search for physician" data-physician-filter="searchName" data-physician-search />
-                      </div>
-                      <div class="card physician-results" data-physician-results-list>
-                        ${renderPhysicianSuggestions()}
-                      </div>
-                    </div>
-                  </div>
-                  <button class="physician-create-link" data-edit-target="create-physician" type="button">Can't find your physician? Create one -></button>
-                </div>
-              </div>
-            </div>
-          </div>
+          ${renderPhysicianSection()}
         </section>
 
-        <button class="intake-continue" type="button">Continue to Product Selection</button>
+        <button class="intake-continue" type="button"${canContinueToProductSelection ? "" : " disabled"}>Save and continue</button>
       </div>
 
       <aside class="card intake-summary">
@@ -779,6 +755,99 @@ function renderPlaceholder(routeKey) {
       <p class="detail-item__value">This section is included in the navigation to match the Figma shell. Start building the live ${routes[routeKey].label.toLowerCase()} flow here.</p>
     </section>
   `;
+}
+
+function renderPhysicianSection() {
+  const primaryPhysician = getPhysicianRecord("primary");
+  if (!hasPhysicianRecord(primaryPhysician)) {
+    return `
+      <div class="card intake-panel">
+        <div class="card__body">
+          <div class="physician-search">
+            <div class="physician-search__hero" aria-hidden="true">
+              <img class="physician-search__hero-image" src="./images/doctor.png" alt="" />
+              <p>Let's find your physician</p>
+            </div>
+            <div class="physician-search__shell" data-physician-shell>
+              <div class="physician-search__filters">
+                <div class="physician-search__mini-field">
+                  <span class="physician-search__mini-label">State</span>
+                  <input type="text" value="${escapeAttribute(profileState.physician.searchState)}" placeholder="State" aria-label="Search by state" data-physician-filter="searchState" />
+                </div>
+                <div class="physician-search__name-stack" data-physician-search-region>
+                  <div class="physician-search__input">
+                    <span>${searchIcon()}</span>
+                    <input type="text" value="${escapeAttribute(profileState.physician.searchName)}" placeholder="Start typing your physician's name" aria-label="Search for physician" data-physician-filter="searchName" data-physician-search />
+                  </div>
+                  <div class="card physician-results" data-physician-results-list>
+                    ${renderPhysicianSuggestions()}
+                  </div>
+                </div>
+              </div>
+              <button class="physician-create-link" data-edit-target="create-physician" type="button">Can't find your physician? Create one -></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  const secondaryPhysician = getPhysicianRecord("secondary");
+  return `
+    <div class="card intake-panel">
+      <div class="intake-address-grid intake-physician-grid">
+        ${renderPhysicianCard("Primary Physician", primaryPhysician, "primary")}
+        ${hasPhysicianRecord(secondaryPhysician)
+          ? renderPhysicianCard("Second Physician", secondaryPhysician, "secondary")
+          : `
+            <article class="card intake-data-card intake-add-card">
+              <div class="surface-card__header">Second Physician</div>
+              <div class="intake-add-card__body">
+                <p>Add a second physician</p>
+                <button class="plus-button" data-open-physician-picker="secondary" type="button" aria-label="Add second physician">+</button>
+              </div>
+            </article>
+          `}
+      </div>
+    </div>
+  `;
+}
+
+function renderPhysicianCard(title, physician, slot) {
+  return `
+    <article class="card intake-data-card">
+      <div class="surface-card__header intake-card__header">
+        <span>${title}</span>
+        <button class="icon-edit" data-open-physician-picker="${slot}" type="button" aria-label="Edit ${title.toLowerCase()}">Edit</button>
+      </div>
+      <div class="intake-address-body intake-physician-body">
+        <p class="intake-address-label">Physician</p>
+        <p>${physician.firstName} ${physician.lastName}</p>
+        <p>${physician.address1}</p>
+        ${physician.address2 ? `<p>${physician.address2}</p>` : ""}
+        <p>${formatCityStateZip(physician.city, physician.state, physician.zipCode)}</p>
+        ${physician.phoneNumber ? `<p>${physician.phoneNumber}</p>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function isProfileReadyForProductSelection() {
+  const hasPrimaryInsurance = Boolean(
+    profileState.insurance.primaryPayer
+    && profileState.insurance.description
+    && profileState.insurance.insuranceType,
+  );
+  const hasBillingAddress = Boolean(
+    profileState.addresses.billingName
+    && profileState.addresses.billingStreet
+    && profileState.addresses.billingCity
+    && profileState.addresses.billingState
+    && profileState.addresses.billingZip,
+  );
+  const hasPrimaryPhysician = hasPhysicianRecord(getPhysicianRecord("primary"));
+
+  return hasPrimaryInsurance && hasBillingAddress && hasPrimaryPhysician;
 }
 
 function infoCard(title, items, actionLabel) {
@@ -1024,6 +1093,8 @@ function modalConfig(target) {
         `,
       };
     case "create-physician":
+      {
+        const physicianRecord = getPhysicianRecord(activePhysicianSlot);
       return {
         eyebrow: "Create New Physician",
         title: "Create New Physician",
@@ -1031,26 +1102,27 @@ function modalConfig(target) {
         fields: `
           <div class="modal-grid modal-grid--physician">
             <div class="modal-stack">
-              ${modalField("NPI", "npi", profileState.physician.npi)}
-              ${modalField("First Name", "firstName", profileState.physician.firstName)}
-              ${modalField("Last Name", "lastName", profileState.physician.lastName)}
+              ${modalField("NPI", "npi", physicianRecord.npi)}
+              ${modalField("First Name", "firstName", physicianRecord.firstName)}
+              ${modalField("Last Name", "lastName", physicianRecord.lastName)}
             </div>
             <div class="modal-stack">
-              ${modalField("Address 1", "address1", profileState.physician.address1)}
-              ${modalField("Address 2", "address2", profileState.physician.address2)}
+              ${modalField("Address 1", "address1", physicianRecord.address1)}
+              ${modalField("Address 2", "address2", physicianRecord.address2)}
               <div class="modal-grid modal-grid--address">
-                ${modalField("City", "city", profileState.physician.city)}
-                ${modalField("State", "state", profileState.physician.state)}
-                ${modalField("Zip Code", "zipCode", profileState.physician.zipCode)}
+                ${modalField("City", "city", physicianRecord.city)}
+                ${modalField("State", "state", physicianRecord.state)}
+                ${modalField("Zip Code", "zipCode", physicianRecord.zipCode)}
               </div>
             </div>
             <div class="modal-stack">
-              ${modalField("Phone Number", "phoneNumber", profileState.physician.phoneNumber, "tel")}
+              ${modalField("Phone Number", "phoneNumber", physicianRecord.phoneNumber, "tel")}
             </div>
           </div>
         `,
         submitLabel: "Next",
       };
+      }
     case "physician-search-results":
       return {
         eyebrow: "Search Results",
@@ -1096,7 +1168,7 @@ function applyModalChanges(target, formData) {
       profileState.insurance.secondaryPolicyNumber = values.secondaryPolicyNumber || "";
       break;
     case "create-physician":
-      Object.assign(profileState.physician, values);
+      setPhysicianRecord(activePhysicianSlot, values);
       break;
     default:
       break;
@@ -1141,6 +1213,46 @@ function escapeAttribute(value) {
     .replaceAll(">", "&gt;");
 }
 
+function emptyPhysicianRecord() {
+  return {
+    npi: "",
+    firstName: "",
+    lastName: "",
+    address1: "",
+    address2: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    phoneNumber: "",
+  };
+}
+
+function getPhysicianRecord(slot = "primary") {
+  return slot === "secondary"
+    ? profileState.physician.secondary
+    : profileState.physician.primary;
+}
+
+function setPhysicianRecord(slot, values) {
+  const record = getPhysicianRecord(slot);
+  record.npi = values.npi || "";
+  record.firstName = values.firstName || "";
+  record.lastName = values.lastName || "";
+  record.address1 = values.address1 || "";
+  record.address2 = values.address2 || "";
+  record.city = values.city || "";
+  record.state = values.state || "";
+  record.zipCode = values.zipCode || "";
+  record.phoneNumber = values.phoneNumber || values.phone || "";
+}
+
+function hasPhysicianRecord(physician) {
+  return Boolean(
+    physician
+    && (physician.npi || physician.firstName || physician.lastName || physician.address1),
+  );
+}
+
 function formatCityStateZip(city, state, zip) {
   return [city, state].filter(Boolean).join(", ") + (zip ? ` ${zip}` : "");
 }
@@ -1165,6 +1277,12 @@ function renderPhysicianSearchResultsModal() {
         <p>Searching the physician directory...</p>
       </div>
     `
+    : !physicianSearchState.hasSearched
+      ? `
+        <div class="physician-modal__empty">
+          <p>Enter search criteria to find a physician.</p>
+        </div>
+      `
     : physicianSearchState.error
       ? `
         <div class="physician-modal__empty">
@@ -1419,6 +1537,16 @@ function closePhysicianSuggestions() {
   }
 }
 
+function openPhysicianPicker() {
+  physicianResultsPage = 1;
+  physicianSearchState.items = [];
+  physicianSearchState.total = 0;
+  physicianSearchState.loading = false;
+  physicianSearchState.error = "";
+  physicianSearchState.hasSearched = false;
+  openModal("physician-search-results");
+}
+
 function buildPhysicianSearchUrl() {
   const params = new URLSearchParams({
     version: "2.1",
@@ -1493,15 +1621,17 @@ function normalizePhysicianTitle(title) {
 }
 
 function applyPhysicianSelection(physician) {
-  profileState.physician.npi = physician.npi || "";
-  profileState.physician.firstName = physician.firstName || "";
-  profileState.physician.lastName = physician.lastName || "";
-  profileState.physician.address1 = physician.address1 || "";
-  profileState.physician.address2 = physician.address2 || "";
-  profileState.physician.city = physician.city || "";
-  profileState.physician.state = physician.state || "";
-  profileState.physician.zipCode = physician.zipCode || "";
-  profileState.physician.phoneNumber = physician.phone || "";
+  setPhysicianRecord(activePhysicianSlot, {
+    npi: physician.npi,
+    firstName: physician.firstName,
+    lastName: physician.lastName,
+    address1: physician.address1,
+    address2: physician.address2,
+    city: physician.city,
+    state: physician.state,
+    zipCode: physician.zipCode,
+    phone: physician.phone,
+  });
   profileState.physician.searchCity = physician.city || profileState.physician.searchCity;
   profileState.physician.searchState = physician.state || profileState.physician.searchState;
   profileState.physician.searchName = physician.lastName || physician.name;
