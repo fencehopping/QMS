@@ -766,7 +766,10 @@ function renderPhysicianSection() {
           <div class="physician-search">
             <div class="physician-search__hero" aria-hidden="true">
               <img class="physician-search__hero-image" src="./images/doctor.png" alt="" />
-              <p>Let's find your physician</p>
+              <p>
+                Let's find your physician, or
+                <button class="physician-search__hero-link" data-edit-target="create-physician" type="button">create a new one here</button>
+              </p>
             </div>
             <div class="physician-search__shell" data-physician-shell>
               <div class="physician-search__filters">
@@ -784,7 +787,6 @@ function renderPhysicianSection() {
                   </div>
                 </div>
               </div>
-              <button class="physician-create-link" data-edit-target="create-physician" type="button">Can't find your physician? Create one -></button>
             </div>
           </div>
         </div>
@@ -928,19 +930,20 @@ function profilePairField(label, left, right, striped = false) {
 
 function physicianResult(name, meta, physicianId = "") {
   const text = meta ? `<p class="physician-results__meta">${meta}</p>` : "";
-  const action = name === "See All Search Results"
-    ? `<button class="physician-results__select" data-open-physician-results type="button">Open</button>`
-    : `<button class="physician-results__select" data-physician-select="${escapeAttribute(physicianId)}" type="button">Select</button>`;
+  const actionLabel = name === "See All Search Results" ? "Open" : "Select";
+  const actionAttr = name === "See All Search Results"
+    ? "data-open-physician-results"
+    : `data-physician-select="${escapeAttribute(physicianId)}"`;
   return `
-    <div class="physician-results__row">
+    <button class="physician-results__row" ${actionAttr} type="button">
       <div class="physician-results__identity">
         <div>
           <p class="physician-results__name">${name}</p>
           ${text}
         </div>
       </div>
-      ${action}
-    </div>
+      <span class="physician-results__select">${actionLabel}</span>
+    </button>
   `;
 }
 
