@@ -1,4 +1,4 @@
-const routes = {
+const patientRoutes = {
   home: {
     label: "Home",
     title: "Welcome Back Nick Holroyd",
@@ -61,10 +61,27 @@ const routes = {
   },
 };
 
+const fitterRoutes = {
+  home: {
+    label: "Dashboard",
+    title: "Dashboard",
+    footer: "Dashboard",
+    subtitle: "Review all assigned patients, shipment timing, and current CGM order statuses.",
+  },
+  signout: {
+    label: "Sign Out",
+    title: "Signed Out",
+    footer: "Sign Out",
+    subtitle: "You can safely leave the fitter portal or sign back in when needed.",
+  },
+};
+
 const pageContent = document.querySelector("#pageContent");
 const pageTitle = document.querySelector("#pageTitle");
 const pageSubtitle = document.querySelector("#pageSubtitle");
 const pageHeaderActions = document.querySelector("#pageHeaderActions");
+const portalEyebrow = document.querySelector("#portalEyebrow");
+const portalViewSelect = document.querySelector("#portalViewSelect");
 const footerLabel = document.querySelector("#footerLabel");
 const navButtons = [...document.querySelectorAll(".nav-item")];
 const mobileNavButtons = [...document.querySelectorAll(".mobile-tabbar__item")];
@@ -79,9 +96,8 @@ const modalForm = document.querySelector("#modalForm");
 const modalEyebrow = document.querySelector("#modalEyebrow");
 const modalSubtitle = document.querySelector("#modalSubtitle");
 const modalCard = document.querySelector(".modal-card");
-const hiddenNavRoutes = new Set(["home", "browse-shoes", "aob", "records", "invoices"]);
-
 let currentRoute = "profile";
+let currentPortal = "patient";
 let activeModalTarget = "";
 let activePhysicianSlot = "primary";
 let physicianResultsPage = 1;
@@ -147,6 +163,11 @@ const physicianSearchState = {
   hasSearched: false,
   currentPage: 1,
   sortField: "firstName",
+  sortDirection: "asc",
+};
+
+const fitterDashboardState = {
+  sortField: "nextShipment",
   sortDirection: "asc",
 };
 
@@ -268,6 +289,32 @@ const catalogSections = [
   },
 ];
 
+const fitterPatients = [
+  ["80046", "BRETT", "SCHISSLER", "04/01/1980", "CGM", "Canceled", "", "", ""],
+  ["87648", "GARY", "RESNICK", "04/19/1939", "CGM", "Canceled", "", "", ""],
+  ["95219", "KATHERINE", "BIDDIX", "09/08/1959", "CGM", "Canceled", "", "", ""],
+  ["100762", "SANDFORD", "GADIENT", "02/07/1936", "CGM", "Insurance Verified", "03/17/2026", "06/15/2026", "1Z2159X70293026505"],
+  ["100847", "FRANK", "IOVINE", "06/29/1942", "CGM", "Insurance Verified", "03/18/2026", "06/16/2026", "1Z2159X70291832290"],
+  ["99341", "TED", "LEVINE", "01/31/1953", "CGM", "Insurance Verified", "02/26/2026", "05/27/2026", "1Z2159X70290458358"],
+  ["102185", "RONALD", "KAPLAN", "02/04/1942", "CGM", "Insurance Verified", "03/15/2026", "06/13/2026", ""],
+  ["102626", "LARRY", "PALMER JR", "11/23/1973", "CGM", "Insurance Verified", "01/25/2026", "02/24/2026", "1Z2159X70291297075"],
+  ["102935", "MIGUEL", "BRITO", "12/29/1984", "CGM", "Insurance Verified", "03/07/2026", "04/06/2026", "1Z2159X70294271211"],
+  ["101345", "PRISCILLA", "ASHLEY", "05/26/1951", "CGM", "Insurance Verified", "03/11/2026", "06/09/2026", "1Z2159X70211457686"],
+  ["102855", "BEN", "WEINSTOCK", "08/17/1946", "CGM", "Insurance Verified", "03/19/2026", "06/17/2026", "1Z2159X70296030147"],
+];
+
+const fitterColumns = [
+  { key: "id", label: "ID" },
+  { key: "firstName", label: "Patient First" },
+  { key: "lastName", label: "Patient Last" },
+  { key: "dob", label: "DOB" },
+  { key: "model", label: "CGM Model" },
+  { key: "status", label: "Status" },
+  { key: "lastShipment", label: "Last Shipment" },
+  { key: "nextShipment", label: "Next Shipment" },
+  { key: "tracking", label: "Tracking #" },
+];
+
 initNav();
 syncRoute();
 window.addEventListener("hashchange", syncRoute);
@@ -286,33 +333,32 @@ document.addEventListener("keydown", (event) => {
 
 function initNav() {
   navButtons.forEach((button) => {
-    const routeKey = button.dataset.route;
-    const route = routes[routeKey];
-    if (!route) return;
-    button.hidden = hiddenNavRoutes.has(routeKey);
-    button.innerHTML = `
-      <span class="nav-item__icon" aria-hidden="true">${iconMap[routeKey] ?? documentIcon()}</span>
-      <span class="nav-item__label">${route.label}</span>
-    `;
     button.addEventListener("click", () => {
+      const routeKey = button.dataset.route;
+      if (!routeKey) return;
       window.location.hash = routeKey;
       closeSidebar();
     });
   });
 
   mobileNavButtons.forEach((button) => {
-    const routeKey = button.dataset.mobileRoute;
-    const route = routes[routeKey];
-    if (!route) return;
-    button.hidden = hiddenNavRoutes.has(routeKey);
-    button.innerHTML = `
-      <span class="mobile-tabbar__icon" aria-hidden="true">${iconMap[routeKey] ?? documentIcon()}</span>
-      <span class="mobile-tabbar__label">${route.label}</span>
-    `;
     button.addEventListener("click", () => {
+      const routeKey = button.dataset.mobileRoute;
+      if (!routeKey) return;
       window.location.hash = routeKey;
       closeSidebar();
     });
+  });
+
+  portalViewSelect.addEventListener("change", (event) => {
+    if (!(event.target instanceof HTMLSelectElement)) return;
+    currentPortal = event.target.value === "fitter" ? "fitter" : "patient";
+    const defaultRoute = getDefaultRoute();
+    if (window.location.hash.replace("#", "") !== defaultRoute) {
+      window.location.hash = defaultRoute;
+      return;
+    }
+    syncRoute();
   });
 
   document.addEventListener("input", (event) => {
@@ -408,6 +454,20 @@ function initNav() {
       }
       return;
     }
+    const fitterSortTrigger = event.target.closest("[data-fitter-sort]");
+    if (fitterSortTrigger instanceof HTMLElement) {
+      const requestedSortField = fitterSortTrigger.dataset.fitterSort;
+      if (requestedSortField && fitterColumns.some((column) => column.key === requestedSortField)) {
+        if (fitterDashboardState.sortField === requestedSortField) {
+          fitterDashboardState.sortDirection = fitterDashboardState.sortDirection === "asc" ? "desc" : "asc";
+        } else {
+          fitterDashboardState.sortField = requestedSortField;
+          fitterDashboardState.sortDirection = "asc";
+        }
+        rerenderCurrentRoute();
+      }
+      return;
+    }
     const physicianPageTrigger = event.target.closest("[data-physician-page]");
     if (physicianPageTrigger instanceof HTMLElement) {
       const requestedPage = Number(physicianPageTrigger.dataset.physicianPage);
@@ -440,10 +500,18 @@ function initNav() {
 }
 
 function syncRoute() {
-  const routeKey = window.location.hash.replace("#", "") || "profile";
+  const requestedRouteKey = window.location.hash.replace("#", "") || getDefaultRoute();
+  const portalRoutes = getRoutes();
+  const routeKey = portalRoutes[requestedRouteKey] ? requestedRouteKey : getDefaultRoute();
+  if (requestedRouteKey !== routeKey) {
+    window.location.hash = routeKey;
+    return;
+  }
+
   currentRoute = routeKey;
-  const route = routes[routeKey] ?? routes.home;
-  const render = views[routeKey] ?? views.home;
+  renderNavigation();
+  const route = portalRoutes[routeKey] ?? portalRoutes[getDefaultRoute()];
+  const render = views[routeKey] ?? views[getDefaultRoute()];
 
   renderPageChrome(routeKey, route);
   pageContent.innerHTML = render(routeKey);
@@ -463,6 +531,10 @@ function closeSidebar() {
 }
 
 function renderHome() {
+  if (currentPortal === "fitter") {
+    return renderFitterDashboard();
+  }
+
   return `
     <div class="stack">
       <div class="hero-banner">
@@ -503,6 +575,116 @@ function renderHome() {
       </div>
     </div>
   `;
+}
+
+function renderFitterDashboard() {
+  const sortedRows = getSortedFitterPatients();
+  const rows = sortedRows
+    .map((row) => `
+      <tr>
+        <td data-label="ID"><span class="fitter-table__link">${row.id}</span></td>
+        <td data-label="Patient First"><span class="fitter-table__link">${row.firstName}</span></td>
+        <td data-label="Patient Last"><span class="fitter-table__link">${row.lastName}</span></td>
+        <td data-label="DOB"><span class="fitter-table__link">${row.dob}</span></td>
+        <td data-label="CGM Model"><span class="fitter-table__link">${row.model}</span></td>
+        <td data-label="Status" class="${row.status === "Canceled" ? "is-canceled" : ""}">${row.status}</td>
+        <td data-label="Last Shipment"><span class="fitter-table__link">${row.lastShipment || "&nbsp;"}</span></td>
+        <td data-label="Next Shipment"><span class="fitter-table__link">${row.nextShipment || "&nbsp;"}</span></td>
+        <td data-label="Tracking #"><span class="fitter-table__link">${row.tracking || "&nbsp;"}</span></td>
+      </tr>
+    `)
+    .join("");
+
+  const headerCells = fitterColumns
+    .map((column) => `
+      <th>
+        <button
+          class="fitter-table__sort${fitterDashboardState.sortField === column.key ? " is-active" : ""}"
+          data-fitter-sort="${column.key}"
+          type="button"
+          aria-pressed="${fitterDashboardState.sortField === column.key ? "true" : "false"}"
+        >
+          <span>${column.label}</span>
+          <span class="fitter-table__sort-icon" aria-hidden="true">${renderFitterSortIcon(column.key)}</span>
+        </button>
+      </th>
+    `)
+    .join("");
+
+  return `
+    <div class="stack fitter-dashboard">
+      <section class="card fitter-toolbar">
+        <div class="fitter-toolbar__field">
+          <label class="form-label" for="fitterProduct">Product</label>
+          <select class="select-shell fitter-toolbar__select" id="fitterProduct">
+            <option>CGM Orders</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="card table-card fitter-table-card">
+        <div class="fitter-table-wrap">
+          <table class="data-table fitter-table">
+            <thead>
+              <tr>${headerCells}</tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function getSortedFitterPatients() {
+  const rows = fitterPatients.map(([id, firstName, lastName, dob, model, status, lastShipment, nextShipment, tracking]) => ({
+    id,
+    firstName,
+    lastName,
+    dob,
+    model,
+    status,
+    lastShipment,
+    nextShipment,
+    tracking,
+  }));
+
+  const direction = fitterDashboardState.sortDirection === "asc" ? 1 : -1;
+  rows.sort((left, right) => compareFitterValues(left, right, fitterDashboardState.sortField) * direction);
+  return rows;
+}
+
+function compareFitterValues(left, right, field) {
+  if (field === "id") {
+    return Number(left.id) - Number(right.id);
+  }
+
+  if (field === "dob" || field === "lastShipment" || field === "nextShipment") {
+    return compareDates(left[field], right[field]);
+  }
+
+  return String(left[field] || "").localeCompare(String(right[field] || ""), undefined, { numeric: true, sensitivity: "base" });
+}
+
+function compareDates(left, right) {
+  const leftTime = parseUsDate(left);
+  const rightTime = parseUsDate(right);
+  if (leftTime === rightTime) return 0;
+  if (leftTime === null) return 1;
+  if (rightTime === null) return -1;
+  return leftTime - rightTime;
+}
+
+function parseUsDate(value) {
+  if (!value) return null;
+  const [month, day, year] = value.split("/").map(Number);
+  if (!month || !day || !year) return null;
+  return new Date(year, month - 1, day).getTime();
+}
+
+function renderFitterSortIcon(field) {
+  if (fitterDashboardState.sortField !== field) return "↕";
+  return fitterDashboardState.sortDirection === "asc" ? "↑" : "↓";
 }
 
 function renderProfile() {
@@ -797,9 +979,17 @@ function renderOrders() {
 }
 
 function renderPlaceholder(routeKey) {
+  if (routeKey === "signout") {
+    return `
+      <section class="card form-card">
+        <p class="detail-item__value">You have been signed out of the ${currentPortal === "fitter" ? "fitter" : "patient"} portal preview.</p>
+      </section>
+    `;
+  }
+
   return `
     <section class="card form-card">
-      <p class="detail-item__value">This section is included in the navigation to match the Figma shell. Start building the live ${routes[routeKey].label.toLowerCase()} flow here.</p>
+      <p class="detail-item__value">This section is included in the navigation to match the Figma shell. Start building the live ${getRoutes()[routeKey].label.toLowerCase()} flow here.</p>
     </section>
   `;
 }
@@ -1037,20 +1227,81 @@ function closeModal() {
 }
 
 function rerenderCurrentRoute() {
-  const route = routes[currentRoute] ?? routes.profile;
-  const render = views[currentRoute] ?? views.profile;
+  const portalRoutes = getRoutes();
+  const fallbackRoute = getDefaultRoute();
+  const route = portalRoutes[currentRoute] ?? portalRoutes[fallbackRoute];
+  const render = views[currentRoute] ?? views[fallbackRoute];
+  renderNavigation();
   renderPageChrome(currentRoute, route);
   pageContent.innerHTML = render(currentRoute);
 }
 
 function renderPageChrome(routeKey, route) {
+  portalEyebrow.textContent = currentPortal === "fitter" ? "Fitter Portal" : "Patient Portal";
+  portalViewSelect.value = currentPortal;
   pageTitle.textContent = route.title;
-  pageSubtitle.innerHTML = routeKey === "profile"
+  pageSubtitle.innerHTML = currentPortal === "patient" && routeKey === "profile"
     ? `${route.subtitle} <button class="page-header__text-link" data-edit-target="prequalifying" type="button">Edit Prequalifying Questions</button>`
     : route.subtitle;
   pageHeaderActions.innerHTML = "";
   footerLabel.textContent = route.footer;
-  pageTitle.classList.toggle("home-title", routeKey === "home");
+  pageTitle.classList.toggle("home-title", currentPortal === "patient" && routeKey === "home");
+}
+
+function getRoutes() {
+  return currentPortal === "fitter" ? fitterRoutes : patientRoutes;
+}
+
+function getPortalNavRoutes() {
+  return currentPortal === "fitter"
+    ? ["home", "signout"]
+    : ["profile", "orders", "support", "security", "signout"];
+}
+
+function getDefaultRoute() {
+  return currentPortal === "fitter" ? "home" : "profile";
+}
+
+function renderNavigation() {
+  const portalRoutes = getRoutes();
+  const navRouteKeys = getPortalNavRoutes();
+
+  navButtons.forEach((button, index) => {
+    const routeKey = navRouteKeys[index];
+    if (!routeKey) {
+      button.hidden = true;
+      button.dataset.route = "";
+      button.innerHTML = "";
+      return;
+    }
+
+    const route = portalRoutes[routeKey];
+    button.hidden = false;
+    button.dataset.route = routeKey;
+    button.classList.toggle("nav-item--muted", currentPortal === "patient" && ["support", "security", "signout"].includes(routeKey));
+    button.innerHTML = `
+      <span class="nav-item__icon" aria-hidden="true">${iconMap[routeKey] ?? documentIcon()}</span>
+      <span class="nav-item__label">${route.label}</span>
+    `;
+  });
+
+  mobileNavButtons.forEach((button, index) => {
+    const routeKey = navRouteKeys[index];
+    if (!routeKey) {
+      button.hidden = true;
+      button.dataset.mobileRoute = "";
+      button.innerHTML = "";
+      return;
+    }
+
+    const route = portalRoutes[routeKey];
+    button.hidden = false;
+    button.dataset.mobileRoute = routeKey;
+    button.innerHTML = `
+      <span class="mobile-tabbar__icon" aria-hidden="true">${iconMap[routeKey] ?? documentIcon()}</span>
+      <span class="mobile-tabbar__label">${route.label}</span>
+    `;
+  });
 }
 
 function modalConfig(target) {

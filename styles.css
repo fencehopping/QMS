@@ -210,6 +210,38 @@ button {
   margin-bottom: 14px;
 }
 
+.portal-switcher {
+  position: relative;
+}
+
+.portal-switcher__select {
+  min-height: 30px;
+  padding: 0 28px 0 10px;
+  border: 1px solid rgba(118, 139, 166, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #39516e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  appearance: none;
+  cursor: pointer;
+}
+
+.portal-switcher::after {
+  content: "\f107";
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  color: #5f7694;
+  font-family: "Font Awesome 6 Free";
+  font-size: 0.65rem;
+  font-weight: 900;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
 .page-header__content {
   display: flex;
   align-items: flex-end;
@@ -1571,6 +1603,89 @@ button {
   color: #8ea0b6;
 }
 
+.fitter-dashboard {
+  gap: 20px;
+}
+
+.fitter-toolbar {
+  padding: 18px 22px 20px;
+}
+
+.fitter-toolbar__field {
+  max-width: 330px;
+}
+
+.fitter-toolbar__select {
+  max-width: 330px;
+}
+
+.fitter-table-card {
+  overflow: hidden;
+}
+
+.fitter-table-wrap {
+  overflow-x: auto;
+}
+
+.fitter-table {
+  min-width: 1040px;
+}
+
+.fitter-table thead th {
+  padding: 0;
+  color: #1d2a3c;
+  font-size: 0.75rem;
+  letter-spacing: 0;
+  text-transform: none;
+  border-bottom: 1px solid rgba(194, 205, 221, 0.85);
+  white-space: nowrap;
+}
+
+.fitter-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 14px 10px;
+  color: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fitter-table__sort-icon {
+  color: #7b91ad;
+  font-size: 0.72rem;
+}
+
+.fitter-table__sort.is-active,
+.fitter-table__sort:hover {
+  color: #0f3e68;
+}
+
+.fitter-table tbody tr:nth-child(odd) {
+  background: rgba(245, 247, 250, 0.92);
+}
+
+.fitter-table tbody td {
+  padding: 12px 10px;
+  color: #1f3044;
+  border-top: 1px solid rgba(201, 210, 223, 0.72);
+  font-size: 0.82rem;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.fitter-table__link {
+  color: #1f3044;
+  text-decoration: none;
+}
+
+.fitter-table td.is-canceled {
+  color: #1f3044;
+}
+
 .aob-card {
   padding: 26px 18px 18px;
 }
@@ -2213,6 +2328,10 @@ button {
     text-align: left;
   }
 
+  .page-header__meta {
+    flex-wrap: wrap;
+  }
+
   .card__title {
     font-size: 1.08rem;
   }
@@ -2251,6 +2370,15 @@ button {
   .orders-product-card__action {
     width: 100%;
     justify-self: stretch;
+  }
+
+  .fitter-toolbar {
+    padding: 18px 18px 20px;
+  }
+
+  .fitter-toolbar__field,
+  .fitter-toolbar__select {
+    max-width: none;
   }
 
   .detail-grid {

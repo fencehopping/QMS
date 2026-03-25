@@ -42,7 +42,14 @@
                 <span></span>
                 <span></span>
               </button>
-              <span class="page-eyebrow">Patient Portal</span>
+              <div class="portal-switcher">
+                <label class="sr-only" for="portalViewSelect">Portal View</label>
+                <select class="portal-switcher__select" id="portalViewSelect" aria-label="Switch portal view">
+                  <option value="patient">Patient Portal</option>
+                  <option value="fitter">Fitter Portal</option>
+                </select>
+              </div>
+              <span class="page-eyebrow" id="portalEyebrow">Patient Portal</span>
             </div>
             <div class="page-header__content">
               <div class="page-header__copy">
