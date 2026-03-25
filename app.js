@@ -83,6 +83,8 @@ const modalCard = document.querySelector(".modal-card");
 let currentRoute = "profile";
 let activeModalTarget = "";
 let physicianResultsPage = 1;
+let physicianSearchRequestId = 0;
+let physicianSearchDebounce = 0;
 
 const profileState = {
   prequalifying: {
@@ -142,6 +144,15 @@ const profileState = {
   },
 };
 
+const physicianSearchState = {
+  items: [],
+  total: 0,
+  loading: false,
+  error: "",
+  hasSearched: false,
+  currentPage: 1,
+};
+
 const iconMap = {
   home: homeIcon(),
   "browse-shoes": shoeIcon(),
@@ -178,28 +189,8 @@ const checklistItems = [
   "To immediately notify Quantum Medical Supply PRIOR TO any change or cancellation of my health insurance coverage or joining a Health Maintenance Organization, Preferred Provider Plan or other managed care group.",
 ];
 
-const physicianDirectory = Array.from({ length: 125 }, (_, index) => {
-  const firstNames = ["Marc", "Maria", "Michael", "Michelle", "Megan", "Matthew", "Mia", "Monica", "Martin", "Mason"];
-  const lastNames = ["Perez", "Vanna", "Vetrano", "Murphy", "Bennett", "Sullivan", "Reyes", "Carver", "Dawson", "Carter"];
-  const cities = ["Scituate", "Hingham", "Plymouth", "Boston", "Quincy"];
-  const states = ["MA", "Massachusetts"];
-  const firstName = firstNames[index % firstNames.length];
-  const lastName = lastNames[Math.floor(index / firstNames.length) % lastNames.length];
-  const city = cities[index % cities.length];
-  const state = states[index % states.length];
-  const streetNumber = 65 + (index % 18) * 4;
-  const phoneTail = String(5560 + index).padStart(4, "0");
-
-  return {
-    id: index + 1,
-    name: `${firstName} ${lastName}`,
-    street: `${streetNumber} Pin Oak Dr`,
-    city,
-    state,
-    phone: `512-557-${phoneTail.slice(-4)}`,
-    title: "Primary Physician",
-  };
-});
+const physicianApiBase = "/api/physicians";
+const physicianResultsPerPage = 5;
 
 const catalogSections = [
   {
@@ -297,6 +288,7 @@ function initNav() {
     const query = event.target.value.trim();
     if (!shell) return;
     shell.classList.toggle("is-search-active", query.length > 0);
+    schedulePhysicianSearch({ page: 1, openModal: false });
   });
 
   document.addEventListener("input", (event) => {
@@ -308,6 +300,9 @@ function initNav() {
     const nameInput = shell?.querySelector("[data-physician-search]");
     if (nameInput instanceof HTMLInputElement && shell) {
       shell.classList.toggle("is-search-active", nameInput.value.trim().length > 0);
+    }
+    if (profileState.physician.searchName.trim().length > 0) {
+      schedulePhysicianSearch({ page: 1, openModal: false });
     }
   });
 
@@ -340,22 +335,30 @@ function initNav() {
     const physicianSearchTrigger = event.target.closest("[data-open-physician-results]");
     if (physicianSearchTrigger) {
       physicianResultsPage = 1;
-      openModal("physician-search-results");
+      void fetchPhysicians({ page: 1, openModal: true });
       return;
     }
     const physicianSearchSubmit = event.target.closest("[data-physician-search-submit]");
     if (physicianSearchSubmit) {
       physicianResultsPage = 1;
-      rerenderCurrentRoute();
-      openModal("physician-search-results");
+      void fetchPhysicians({ page: 1, openModal: true });
       return;
     }
     const physicianPageTrigger = event.target.closest("[data-physician-page]");
     if (physicianPageTrigger instanceof HTMLElement) {
       const requestedPage = Number(physicianPageTrigger.dataset.physicianPage);
-      const totalPages = Math.max(1, Math.ceil(getFilteredPhysicians().length / 5));
+      const totalPages = Math.max(1, Math.ceil(physicianSearchState.total / physicianResultsPerPage));
       physicianResultsPage = Math.min(Math.max(requestedPage, 1), totalPages);
-      openModal("physician-search-results");
+      void fetchPhysicians({ page: physicianResultsPage, openModal: true });
+      return;
+    }
+    const physicianSelectTrigger = event.target.closest("[data-physician-select]");
+    if (physicianSelectTrigger instanceof HTMLElement) {
+      const physicianId = physicianSelectTrigger.dataset.physicianSelect;
+      const physician = physicianSearchState.items.find((item) => item.id === physicianId);
+      if (physician) {
+        applyPhysicianSelection(physician);
+      }
       return;
     }
     const trigger = event.target.closest("[data-edit-target]");
@@ -557,17 +560,17 @@ function renderProfile() {
                       <span class="physician-search__mini-label">City</span>
                       <input type="text" value="${escapeAttribute(profileState.physician.searchCity)}" placeholder="City" aria-label="Search by city" data-physician-filter="searchCity" />
                     </div>
-                    <div class="physician-search__input">
-                      <span>${searchIcon()}</span>
-                      <input type="text" value="${escapeAttribute(profileState.physician.searchName)}" placeholder="Start typing your physician's name" aria-label="Search for physician" data-physician-filter="searchName" data-physician-search />
+                    <div class="physician-search__name-stack">
+                      <div class="physician-search__input">
+                        <span>${searchIcon()}</span>
+                        <input type="text" value="${escapeAttribute(profileState.physician.searchName)}" placeholder="Start typing your physician's name" aria-label="Search for physician" data-physician-filter="searchName" data-physician-search />
+                      </div>
+                      <div class="card physician-results" data-physician-results-list>
+                        ${renderPhysicianSuggestions()}
+                      </div>
                     </div>
                   </div>
                   <button class="physician-create-link" data-edit-target="create-physician" type="button">Can't find your physician? Create one -></button>
-                  <div class="card physician-results">
-                    ${physicianResult("Marc Vanna", "65 Pin Oak Dr. Scituate, MA")}
-                    ${physicianResult("Marc Vetrano", "65 Pin Oak Dr. Scituate, MA")}
-                    ${physicianResult("See All Search Results", "")}
-                  </div>
                 </div>
               </div>
             </div>
@@ -796,15 +799,14 @@ function profilePairField(label, left, right, striped = false) {
   `;
 }
 
-function physicianResult(name, meta) {
+function physicianResult(name, meta, physicianId = "") {
   const text = meta ? `<p class="physician-results__meta">${meta}</p>` : "";
   const action = name === "See All Search Results"
     ? `<button class="physician-results__select" data-open-physician-results type="button">Open</button>`
-    : `<button class="physician-results__select" type="button">Select</button>`;
+    : `<button class="physician-results__select" data-physician-select="${escapeAttribute(physicianId)}" type="button">Select</button>`;
   return `
     <div class="physician-results__row">
       <div class="physician-results__identity">
-        <span class="physician-results__icon">${doctorIcon()}</span>
         <div>
           <p class="physician-results__name">${name}</p>
           ${text}
@@ -1083,33 +1085,31 @@ function formatCityStateZip(city, state, zip) {
   return [city, state].filter(Boolean).join(", ") + (zip ? ` ${zip}` : "");
 }
 
-function getFilteredPhysicians() {
-  const { searchState, searchCity, searchName } = profileState.physician;
-  const stateQuery = searchState.trim().toLowerCase();
-  const cityQuery = searchCity.trim().toLowerCase();
-  const nameQuery = searchName.trim().toLowerCase();
-
-  return physicianDirectory.filter((physician) => {
-    const matchesState = !stateQuery || physician.state.toLowerCase().includes(stateQuery);
-    const matchesCity = !cityQuery || physician.city.toLowerCase().includes(cityQuery);
-    const matchesName = !nameQuery || physician.name.toLowerCase().includes(nameQuery);
-    return matchesState && matchesCity && matchesName;
-  });
-}
-
 function renderPhysicianSearchResultsModal() {
-  const results = getFilteredPhysicians();
-  const perPage = 5;
-  const totalPages = Math.max(1, Math.ceil(results.length / perPage));
+  const results = physicianSearchState.items;
+  const totalResults = physicianSearchState.total;
+  const perPage = physicianResultsPerPage;
+  const totalPages = Math.max(1, Math.ceil(totalResults / perPage));
   const currentPage = Math.min(physicianResultsPage, totalPages);
   physicianResultsPage = currentPage;
   const start = (currentPage - 1) * perPage;
-  const end = Math.min(start + perPage, results.length);
-  const visibleResults = results.slice(start, end);
+  const end = Math.min(start + results.length, totalResults);
   const lastPage = totalPages;
 
-  const rows = visibleResults.length
-    ? visibleResults
+  const rows = physicianSearchState.loading
+    ? `
+      <div class="physician-modal__empty">
+        <p>Searching the physician directory...</p>
+      </div>
+    `
+    : physicianSearchState.error
+      ? `
+        <div class="physician-modal__empty">
+          <p>${physicianSearchState.error}</p>
+        </div>
+      `
+      : results.length
+        ? results
         .map(
           (physician) => `
             <article class="physician-modal__row">
@@ -1123,18 +1123,18 @@ function renderPhysicianSearchResultsModal() {
                   <p class="physician-modal__title">${physician.title}</p>
                   <p class="physician-modal__phone">${physician.phone}</p>
                 </div>
-                <button class="physician-modal__select" type="button">Select <span aria-hidden="true">›</span></button>
+                <button class="physician-modal__select" data-physician-select="${escapeAttribute(physician.id)}" type="button">Select <span aria-hidden="true">›</span></button>
               </div>
             </article>
           `,
         )
         .join("")
-    : `
-      <div class="physician-modal__empty">
-        <p>No physicians match the current search.</p>
-        <button class="physician-create-link physician-create-link--inline" data-edit-target="create-physician" type="button">Create a new physician instead -></button>
-      </div>
-    `;
+        : `
+          <div class="physician-modal__empty">
+            <p>No physicians match the current search.</p>
+            <button class="physician-create-link physician-create-link--inline" data-edit-target="create-physician" type="button">Create a new physician instead -></button>
+          </div>
+        `;
 
   return `
     <section class="physician-modal">
@@ -1159,7 +1159,7 @@ function renderPhysicianSearchResultsModal() {
         ${rows}
       </div>
       <div class="physician-modal__footer">
-        <p>Showing ${results.length ? start + 1 : 0}-${end} of ${results.length} entries</p>
+        <p>Showing ${totalResults ? start + 1 : 0}-${end} of ${totalResults} entries</p>
         ${renderPhysicianPagination(currentPage, totalPages, lastPage)}
       </div>
     </section>
@@ -1167,6 +1167,7 @@ function renderPhysicianSearchResultsModal() {
 }
 
 function renderPhysicianPagination(currentPage, totalPages, lastPage) {
+  if (!physicianSearchState.total) return "";
   const prevDisabled = currentPage === 1;
   const nextDisabled = currentPage === totalPages;
   const pageNumbers = new Set([1, currentPage - 1, currentPage, currentPage + 1, lastPage]);
@@ -1196,6 +1197,181 @@ function renderPhysicianPageButton(page, currentPage) {
   return `
     <button class="physician-modal__page${page === currentPage ? " is-active" : ""}" data-physician-page="${page}" type="button">${page}</button>
   `;
+}
+
+function renderPhysicianSuggestions() {
+  if (physicianSearchState.loading) {
+    return '<div class="physician-results__empty"><p>Searching the physician directory...</p></div>';
+  }
+  if (physicianSearchState.error) {
+    return `<div class="physician-results__empty"><p>${physicianSearchState.error}</p></div>`;
+  }
+  if (!physicianSearchState.hasSearched || !profileState.physician.searchName.trim()) {
+    return "";
+  }
+  if (!physicianSearchState.items.length) {
+    return '<div class="physician-results__empty"><p>No physicians found. Try a different city, state, or last name.</p></div>';
+  }
+
+  const suggestionRows = physicianSearchState.items
+    .slice(0, 2)
+    .map((physician) => physicianResult(physician.name, formatPhysicianMeta(physician), physician.id))
+    .join("");
+  const searchAllRow = physicianSearchState.total > 2 ? physicianResult("See All Search Results", "") : "";
+  return `${suggestionRows}${searchAllRow}`;
+}
+
+function formatPhysicianMeta(physician) {
+  const location = [physician.street, [physician.city, physician.state].filter(Boolean).join(", ")].filter(Boolean).join(". ");
+  return location;
+}
+
+function schedulePhysicianSearch({ page = 1, openModal = false } = {}) {
+  window.clearTimeout(physicianSearchDebounce);
+  physicianSearchDebounce = window.setTimeout(() => {
+    void fetchPhysicians({ page, openModal });
+  }, 280);
+}
+
+async function fetchPhysicians({ page = 1, openModal = false } = {}) {
+  const query = profileState.physician.searchName.trim();
+  physicianResultsPage = page;
+
+  if (query.length < 2) {
+    physicianSearchState.items = [];
+    physicianSearchState.total = 0;
+    physicianSearchState.loading = false;
+    physicianSearchState.error = "";
+    physicianSearchState.hasSearched = false;
+    refreshPhysicianSearchUi({ openModal });
+    return;
+  }
+
+  physicianSearchState.loading = true;
+  physicianSearchState.error = "";
+  physicianSearchState.currentPage = page;
+  refreshPhysicianSearchUi({ openModal });
+
+  const requestId = ++physicianSearchRequestId;
+
+  try {
+    const response = await fetch(buildPhysicianSearchUrl(), {
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) {
+      throw new Error(`Physician lookup failed with status ${response.status}`);
+    }
+    const data = await response.json();
+    if (requestId !== physicianSearchRequestId) return;
+    if (Array.isArray(data.Errors) && data.Errors.length) {
+      throw new Error(data.Errors[0].description || "The CMS lookup did not return physician results.");
+    }
+
+    physicianSearchState.items = Array.isArray(data.results) ? data.results.map(mapPhysicianResult) : [];
+    physicianSearchState.total = physicianSearchState.items.length;
+    physicianSearchState.loading = false;
+    physicianSearchState.error = "";
+    physicianSearchState.hasSearched = true;
+    physicianSearchState.currentPage = page;
+  } catch (error) {
+    if (requestId !== physicianSearchRequestId) return;
+    physicianSearchState.items = [];
+    physicianSearchState.total = 0;
+    physicianSearchState.loading = false;
+    physicianSearchState.hasSearched = true;
+    physicianSearchState.error = error instanceof Error
+      ? error.message
+      : "We couldn't reach the CMS physician directory right now.";
+  }
+
+  refreshPhysicianSearchUi({ openModal });
+}
+
+function refreshPhysicianSearchUi({ openModal: shouldOpenModal = false } = {}) {
+  const suggestionList = document.querySelector("[data-physician-results-list]");
+  if (suggestionList) {
+    suggestionList.innerHTML = renderPhysicianSuggestions();
+  }
+  const shell = document.querySelector("[data-physician-shell]");
+  const shouldOpen = profileState.physician.searchName.trim().length > 0;
+  if (shell) {
+    shell.classList.toggle("is-search-active", shouldOpen);
+  }
+  if (shouldOpenModal || activeModalTarget === "physician-search-results") {
+    openModal("physician-search-results");
+  }
+}
+
+function buildPhysicianSearchUrl() {
+  const params = new URLSearchParams({
+    version: "2.1",
+    enumeration_type: "NPI-1",
+  });
+
+  if (profileState.physician.searchState.trim()) {
+    params.set("state", profileState.physician.searchState.trim().toUpperCase());
+  }
+  if (profileState.physician.searchCity.trim()) {
+    params.set("city", profileState.physician.searchCity.trim());
+  }
+
+  const tokens = profileState.physician.searchName.trim().split(/\s+/).filter(Boolean);
+  if (tokens.length > 1) {
+    params.set("first_name", `${tokens[0]}*`);
+    params.set("last_name", `${tokens.slice(1).join(" ")}*`);
+    params.set("use_first_name_alias", "true");
+  } else if (tokens.length === 1) {
+    params.set("last_name", `${tokens[0]}*`);
+  }
+
+  return `${physicianApiBase}?${params.toString()}`;
+}
+
+function mapPhysicianResult(result) {
+  const basic = result.basic || {};
+  const address = (result.addresses || []).find((item) => item.address_purpose === "LOCATION")
+    || (result.addresses || [])[0]
+    || {};
+  const taxonomy = (result.taxonomies || []).find((item) => item.primary)
+    || (result.taxonomies || [])[0]
+    || {};
+  const name = [basic.first_name, basic.last_name].filter(Boolean).join(" ")
+    || basic.organization_name
+    || "Unknown Physician";
+  const postalCode = String(address.postal_code || "").slice(0, 5);
+
+  return {
+    id: String(result.number || name),
+    npi: String(result.number || ""),
+    name,
+    firstName: basic.first_name || "",
+    lastName: basic.last_name || "",
+    title: taxonomy.desc || "Physician",
+    street: [address.address_1, address.address_2].filter(Boolean).join(" "),
+    address1: address.address_1 || "",
+    address2: address.address_2 || "",
+    city: address.city || "",
+    state: address.state || "",
+    zipCode: postalCode,
+    phone: address.telephone_number || "",
+  };
+}
+
+function applyPhysicianSelection(physician) {
+  profileState.physician.npi = physician.npi || "";
+  profileState.physician.firstName = physician.firstName || "";
+  profileState.physician.lastName = physician.lastName || "";
+  profileState.physician.address1 = physician.address1 || "";
+  profileState.physician.address2 = physician.address2 || "";
+  profileState.physician.city = physician.city || "";
+  profileState.physician.state = physician.state || "";
+  profileState.physician.zipCode = physician.zipCode || "";
+  profileState.physician.phoneNumber = physician.phone || "";
+  profileState.physician.searchCity = physician.city || profileState.physician.searchCity;
+  profileState.physician.searchState = physician.state || profileState.physician.searchState;
+  profileState.physician.searchName = physician.lastName || physician.name;
+  closeModal();
+  rerenderCurrentRoute();
 }
 
 function detailIcon(type) {

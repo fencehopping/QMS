@@ -951,6 +951,10 @@ button {
   align-items: end;
 }
 
+.physician-search__name-stack {
+  position: relative;
+}
+
 .physician-search__mini-field {
   display: grid;
   gap: 6px;
@@ -1005,7 +1009,7 @@ button {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  right: 0;
+  width: 100%;
   z-index: 12;
   border-radius: 12px;
   overflow: hidden;
@@ -1040,17 +1044,7 @@ button {
 }
 
 .physician-results__identity {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
   min-width: 0;
-}
-
-.physician-results__icon {
-  width: 14px;
-  height: 14px;
-  color: #103e52;
-  flex: 0 0 auto;
 }
 
 .physician-results__name,
