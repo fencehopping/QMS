@@ -736,13 +736,60 @@ function renderOrders() {
     <div class="stack">
       <section class="card surface-card orders-card">
         <div class="surface-card__header">My Orders</div>
-        <div class="footer-rule"></div>
-        <div class="empty-state">
-          <img src="./Icons/processingorder.png" alt="Orders icon" />
-          <div>
-            <h2>No active orders</h2>
-            <p>Your current design is an empty state. Add shipment cards or a tracking table here when you start building the live portal workflow.</p>
-          </div>
+        <div class="orders-card__content">
+          <article class="orders-product-card orders-product-card--active">
+            <div class="orders-product-card__media">
+              <img src="./images/cgms.png" alt="Dexcom G7 continuous glucose monitor" />
+            </div>
+            <div class="orders-product-card__body">
+              <p class="orders-product-card__eyebrow">Continuous Glucose Monitor</p>
+              <div class="orders-product-card__title-row">
+                <h2>Dexcom G7</h2>
+                <span class="orders-status-pill">Waiting on Rx</span>
+              </div>
+              <p class="orders-product-card__copy">Your CGM order is in progress and is waiting for the prescribing physician to send the required prescription.</p>
+              <div class="orders-meta">
+                <div>
+                  <span class="orders-meta__label">Order type</span>
+                  <span class="orders-meta__value">Active order</span>
+                </div>
+                <div>
+                  <span class="orders-meta__label">Next step</span>
+                  <span class="orders-meta__value">Prescription needed</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="orders-qualify-section">
+        <div class="orders-qualify-section__header">
+          <h2>Other products you qualify for</h2>
+        </div>
+        <div class="orders-qualify-grid">
+          <article class="card surface-card orders-product-card">
+            <div class="orders-product-card__media orders-product-card__media--shoes">
+              <img src="./images/shoes.png" alt="Diabetic footwear" />
+            </div>
+            <div class="orders-product-card__body orders-product-card__body--compact">
+              <p class="orders-product-card__eyebrow">Shoes</p>
+              <h3>Diabetic Footwear</h3>
+              <p class="orders-product-card__copy">Start a request to review qualifying styles and begin the documentation process for diabetic shoes.</p>
+              <button class="action-button orders-product-card__action" type="button">Request Product</button>
+            </div>
+          </article>
+          <article class="card surface-card orders-product-card">
+            <div class="orders-product-card__media orders-product-card__media--compression">
+              <img src="./images/compression.png" alt="Compression garments" />
+            </div>
+            <div class="orders-product-card__body orders-product-card__body--compact">
+              <p class="orders-product-card__eyebrow">Compression</p>
+              <h3>Lymphedema</h3>
+              <p class="orders-product-card__copy">Request compression products and have the team verify coverage and the documentation needed to proceed.</p>
+              <button class="action-button orders-product-card__action" type="button">Request Product</button>
+            </div>
+          </article>
         </div>
       </section>
     </div>

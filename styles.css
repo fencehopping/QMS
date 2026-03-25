@@ -1664,41 +1664,185 @@ button {
 }
 
 .orders-card {
-  min-height: 184px;
+  overflow: hidden;
 }
 
 .orders-card .surface-card__header {
   font-weight: 700;
 }
 
-.empty-state {
+.orders-card__content {
+  padding: 20px;
+}
+
+.orders-product-card {
+  display: grid;
+  grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+  border: 1px solid rgba(105, 132, 171, 0.18);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 253, 0.92));
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.orders-product-card--active {
+  background:
+    linear-gradient(135deg, rgba(232, 244, 255, 0.96), rgba(255, 255, 255, 0.94)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 253, 0.92));
+}
+
+.orders-product-card__media {
   display: flex;
+  align-items: stretch;
+  justify-content: center;
+  min-height: 100%;
+  background: linear-gradient(180deg, rgba(230, 239, 249, 0.9), rgba(214, 229, 244, 0.9));
+}
+
+.orders-product-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  object-fit: cover;
+}
+
+.orders-product-card__media--shoes {
   align-items: center;
-  gap: 18px;
-  padding: 24px 20px 26px;
-  color: #5c6980;
 }
 
-.empty-state img {
-  width: 72px;
-  height: 72px;
+.orders-product-card__media--shoes img {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  object-fit: cover;
+  object-position: 38% center;
+}
+
+.orders-product-card__media--compression {
+  align-items: center;
+  padding: 18px;
+}
+
+.orders-product-card__media--compression img {
+  width: 100%;
+  height: auto;
+  max-height: 184px;
+  min-height: 0;
   object-fit: contain;
-  border-radius: 18px;
-  background: white;
-  padding: 12px;
-  box-shadow: inset 0 0 0 1px rgba(111, 130, 153, 0.12);
+  object-position: center center;
 }
 
-.empty-state h2 {
-  margin: 0 0 8px;
-  font-size: 1.08rem;
+.orders-product-card__body {
+  display: grid;
+  gap: 14px;
+  padding: 24px;
 }
 
-.empty-state p {
+.orders-product-card__body--compact {
+  height: 100%;
+  align-content: start;
+}
+
+.orders-product-card__eyebrow {
   margin: 0;
-  font-size: 0.94rem;
-  line-height: 1.55;
-  max-width: 540px;
+  color: var(--soft-blue-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.orders-product-card__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.orders-product-card__title-row h2,
+.orders-product-card__body h3 {
+  margin: 0;
+  color: #122234;
+  letter-spacing: -0.04em;
+}
+
+.orders-product-card__title-row h2 {
+  font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.orders-product-card__body h3 {
+  font-size: 1.35rem;
+}
+
+.orders-status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(241, 181, 71, 0.18);
+  color: #956313;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.orders-product-card__copy {
+  margin: 0;
+  color: #5c6980;
+  font-size: 0.96rem;
+  line-height: 1.6;
+}
+
+.orders-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.orders-meta__label,
+.orders-meta__value {
+  display: block;
+}
+
+.orders-meta__label {
+  margin-bottom: 6px;
+  color: #6e8197;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.orders-meta__value {
+  color: #17212e;
+  font-size: 0.96rem;
+  font-weight: 600;
+}
+
+.orders-qualify-section {
+  display: grid;
+  gap: 14px;
+}
+
+.orders-qualify-section__header h2 {
+  margin: 0;
+  color: #103e52;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.orders-qualify-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.orders-product-card__action {
+  width: auto;
+  margin-top: 4px;
+  justify-self: start;
 }
 
 .portal-footer {
@@ -2074,7 +2218,7 @@ button {
   }
 
   .card__copy,
-  .empty-state p,
+  .orders-product-card__copy,
   .detail-item__value,
   .check-row p {
     font-size: 0.92rem;
@@ -2089,6 +2233,24 @@ button {
   .product-card .pill-button,
   .catalog-card__button {
     min-width: 0;
+  }
+
+  .orders-product-card {
+    grid-template-columns: 1fr;
+  }
+
+  .orders-qualify-grid,
+  .orders-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .orders-product-card__media img {
+    min-height: 180px;
+  }
+
+  .orders-product-card__action {
+    width: 100%;
+    justify-self: stretch;
   }
 
   .detail-grid {
@@ -2148,12 +2310,6 @@ button {
     grid-template-columns: 20px 1fr;
     gap: 10px;
     padding: 14px 12px;
-  }
-
-  .empty-state {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 18px 16px 20px;
   }
 
   .footer-brand {
