@@ -458,6 +458,46 @@ button {
   padding-top: 4px;
 }
 
+.insurance-provider-picker {
+  display: grid;
+  gap: 10px;
+}
+
+.insurance-provider-picker__footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.insurance-provider-picker__helper,
+.insurance-provider-picker__error {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.insurance-provider-picker__helper {
+  color: #5f738a;
+}
+
+.insurance-provider-picker__error {
+  color: #b24343;
+  font-weight: 700;
+}
+
+.insurance-provider-picker__toggle {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1f8fc3;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 .modal-secondary {
   display: inline-flex;
   align-items: center;
@@ -2112,6 +2152,11 @@ button {
   }
 
   .physician-modal__sortbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .insurance-provider-picker__footer {
     flex-direction: column;
     align-items: flex-start;
   }
