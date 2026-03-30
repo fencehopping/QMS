@@ -1613,7 +1613,7 @@ async function loadInsuranceProviders() {
 }
 
 function renderInsuranceProviderField() {
-  const providerValue = insuranceEditState.providerInput || profileState.insurance.primaryPayer;
+  const providerValue = insuranceEditState.providerInput;
   const helperText = insuranceEditState.manualEntry
     ? "Enter the provider name exactly as it appears on the card."
     : insuranceProviderState.loading
