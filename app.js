@@ -470,6 +470,13 @@ function initNav() {
       void fetchPhysicians({ page: 1, openModal: true });
       return;
     }
+    const physicianEditTrigger = event.target.closest("[data-edit-physician]");
+    if (physicianEditTrigger instanceof HTMLElement) {
+      const requestedSlot = physicianEditTrigger.dataset.editPhysician;
+      activePhysicianSlot = requestedSlot === "secondary" ? "secondary" : "primary";
+      openModal("edit-physician");
+      return;
+    }
     const physicianPickerTrigger = event.target.closest("[data-open-physician-picker]");
     if (physicianPickerTrigger instanceof HTMLElement) {
       const requestedSlot = physicianPickerTrigger.dataset.openPhysicianPicker;
@@ -1123,7 +1130,7 @@ function renderPhysicianCard(title, physician, slot) {
     <article class="card intake-data-card">
       <div class="surface-card__header intake-card__header">
         <span>${title}</span>
-        <button class="icon-edit" data-open-physician-picker="${slot}" type="button" aria-label="Edit ${title.toLowerCase()}">Edit</button>
+        <button class="icon-edit" data-edit-physician="${slot}" type="button" aria-label="Edit ${title.toLowerCase()}">Edit</button>
       </div>
       <div class="intake-address-body intake-physician-body">
         <p class="intake-address-label">Physician</p>
@@ -1479,6 +1486,19 @@ function modalConfig(target) {
         submitLabel: "Next",
       };
       }
+    case "edit-physician":
+      {
+        const physicianRecord = getPhysicianRecord(activePhysicianSlot);
+        return {
+          eyebrow: "Edit Physician",
+          title: "Edit Physician Details",
+          fields: `
+            ${renderSelectedPhysicianField(physicianRecord)}
+            ${renderPhysicianLocationField(physicianRecord)}
+            <button class="physician-search__hero-link physician-search__hero-link--left" data-open-physician-picker="${activePhysicianSlot}" type="button">Search for a different physician</button>
+          `,
+        };
+      }
     case "physician-search-results":
       return {
         eyebrow: "Search Results",
@@ -1525,7 +1545,10 @@ function applyModalChanges(target, formData) {
       profileState.insurance.secondaryPolicyNumber = values.secondaryPolicyNumber || "";
       break;
     case "create-physician":
-      setPhysicianRecord(activePhysicianSlot, values);
+      setPhysicianRecord(activePhysicianSlot, { ...values, locationId: "", locations: [] });
+      break;
+    case "edit-physician":
+      applyPhysicianLocationSelection(activePhysicianSlot, values.locationId || "");
       break;
     default:
       break;
@@ -1757,6 +1780,8 @@ function emptyPhysicianRecord() {
     state: "",
     zipCode: "",
     phoneNumber: "",
+    locationId: "",
+    locations: [],
   };
 }
 
@@ -1777,6 +1802,79 @@ function setPhysicianRecord(slot, values) {
   record.state = values.state || "";
   record.zipCode = values.zipCode || "";
   record.phoneNumber = values.phoneNumber || values.phone || "";
+  record.locationId = values.locationId || record.locationId || "";
+  if (Array.isArray(values.locations)) {
+    record.locations = values.locations.map((location) => ({ ...location }));
+  } else if (!Array.isArray(record.locations)) {
+    record.locations = [];
+  }
+}
+
+function applyPhysicianLocationSelection(slot, locationId) {
+  const record = getPhysicianRecord(slot);
+  if (!Array.isArray(record.locations) || !record.locations.length) return;
+  const selectedLocation = record.locations.find((location) => location.id === locationId) || record.locations[0];
+  if (!selectedLocation) return;
+  record.locationId = selectedLocation.id;
+  record.address1 = selectedLocation.address1 || "";
+  record.address2 = selectedLocation.address2 || "";
+  record.city = selectedLocation.city || "";
+  record.state = selectedLocation.state || "";
+  record.zipCode = selectedLocation.zipCode || "";
+  record.phoneNumber = selectedLocation.phone || "";
+}
+
+function renderSelectedPhysicianField(physicianRecord) {
+  const name = [physicianRecord.firstName, physicianRecord.lastName].filter(Boolean).join(" ");
+  return `
+    <div class="physician-selected-card">
+      <p class="modal-field__label">Selected Physician</p>
+      <div class="physician-selected-card__body">
+        <p class="physician-selected-card__name">${name || "No physician selected"}</p>
+        ${physicianRecord.npi ? `<p class="physician-selected-card__meta">NPI: ${physicianRecord.npi}</p>` : ""}
+        ${physicianRecord.address1 ? `<p class="physician-selected-card__meta">${physicianRecord.address1}</p>` : ""}
+        ${physicianRecord.address2 ? `<p class="physician-selected-card__meta">${physicianRecord.address2}</p>` : ""}
+        ${(physicianRecord.city || physicianRecord.state || physicianRecord.zipCode) ? `<p class="physician-selected-card__meta">${formatCityStateZip(physicianRecord.city, physicianRecord.state, physicianRecord.zipCode)}</p>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function renderPhysicianLocationField(physicianRecord) {
+  const locations = Array.isArray(physicianRecord.locations) ? physicianRecord.locations : [];
+  const selectedLocationId = physicianRecord.locationId || locations[0]?.id || "";
+
+  if (locations.length <= 1) {
+    return `
+      <input type="hidden" name="locationId" value="${escapeAttribute(selectedLocationId)}" />
+      <div class="physician-selected-card physician-selected-card--compact">
+        <p class="modal-field__label">Location</p>
+        <div class="physician-selected-card__body">
+          <p class="physician-selected-card__meta">${locations.length ? formatPhysicianLocationLabel(locations[0]) : "One location on file"}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <label class="modal-field">
+      <span class="modal-field__label">Location</span>
+      <select class="modal-input" name="locationId">
+        ${locations.map((location) => `
+          <option value="${escapeAttribute(location.id)}"${location.id === selectedLocationId ? " selected" : ""}>
+            ${escapeAttribute(formatPhysicianLocationLabel(location))}
+          </option>
+        `).join("")}
+      </select>
+    </label>
+  `;
+}
+
+function formatPhysicianLocationLabel(location) {
+  return [
+    [location.address1, location.address2].filter(Boolean).join(" "),
+    [location.city, location.state].filter(Boolean).join(", "),
+  ].filter(Boolean).join(" • ");
 }
 
 function hasPhysicianRecord(physician) {
@@ -2134,7 +2232,42 @@ function mapPhysicianResult(result) {
     state: address.state || "",
     zipCode: postalCode,
     phone: address.telephone_number || "",
+    locationId: "",
+    locations: mapPhysicianLocations(result),
   };
+}
+
+function mapPhysicianLocations(result) {
+  const addresses = Array.isArray(result.addresses) ? result.addresses : [];
+  const locationAddresses = addresses.filter((item) => item.address_purpose === "LOCATION");
+  const sourceAddresses = locationAddresses.length ? locationAddresses : addresses.slice(0, 1);
+  const deduped = [];
+  const seen = new Set();
+
+  sourceAddresses.forEach((address, index) => {
+    const postalCode = String(address.postal_code || "").slice(0, 5);
+    const key = [
+      address.address_1 || "",
+      address.address_2 || "",
+      address.city || "",
+      address.state || "",
+      postalCode,
+      address.telephone_number || "",
+    ].join("|");
+    if (seen.has(key)) return;
+    seen.add(key);
+    deduped.push({
+      id: `${result.number || "location"}-${index + 1}`,
+      address1: address.address_1 || "",
+      address2: address.address_2 || "",
+      city: address.city || "",
+      state: address.state || "",
+      zipCode: postalCode,
+      phone: address.telephone_number || "",
+    });
+  });
+
+  return deduped;
 }
 
 function shouldShowPhysicianResult(physician) {
@@ -2164,7 +2297,10 @@ function applyPhysicianSelection(physician) {
     state: physician.state,
     zipCode: physician.zipCode,
     phone: physician.phone,
+    locationId: physician.locationId || physician.locations?.[0]?.id || "",
+    locations: physician.locations || [],
   });
+  applyPhysicianLocationSelection(activePhysicianSlot, physician.locationId || physician.locations?.[0]?.id || "");
   profileState.physician.searchCity = physician.city || profileState.physician.searchCity;
   profileState.physician.searchState = physician.state || profileState.physician.searchState;
   profileState.physician.searchName = physician.lastName || physician.name;

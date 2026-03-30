@@ -1078,6 +1078,45 @@ button {
   text-decoration: underline;
 }
 
+.physician-search__hero-link--left {
+  justify-self: start;
+}
+
+.physician-selected-card {
+  display: grid;
+  gap: 8px;
+}
+
+.physician-selected-card--compact {
+  gap: 6px;
+}
+
+.physician-selected-card__body {
+  display: grid;
+  gap: 4px;
+  padding: 16px 18px;
+  border: 1px solid rgba(147, 168, 193, 0.32);
+  border-radius: 16px;
+  background: rgba(244, 248, 253, 0.9);
+}
+
+.physician-selected-card__name,
+.physician-selected-card__meta {
+  margin: 0;
+}
+
+.physician-selected-card__name {
+  color: #17212e;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.physician-selected-card__meta {
+  color: #5f738a;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
 .physician-search__shell {
   position: relative;
 }
