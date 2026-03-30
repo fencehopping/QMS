@@ -481,6 +481,7 @@ function initNav() {
     if (physicianPickerTrigger instanceof HTMLElement) {
       const requestedSlot = physicianPickerTrigger.dataset.openPhysicianPicker;
       activePhysicianSlot = requestedSlot === "secondary" ? "secondary" : "primary";
+      profileState.physician.searchName = "";
       openPhysicianPicker();
       return;
     }
@@ -1844,27 +1845,17 @@ function renderPhysicianLocationField(physicianRecord) {
   const locations = Array.isArray(physicianRecord.locations) ? physicianRecord.locations : [];
   const selectedLocationId = physicianRecord.locationId || locations[0]?.id || "";
 
-  if (locations.length <= 1) {
-    return `
-      <input type="hidden" name="locationId" value="${escapeAttribute(selectedLocationId)}" />
-      <div class="physician-selected-card physician-selected-card--compact">
-        <p class="modal-field__label">Location</p>
-        <div class="physician-selected-card__body">
-          <p class="physician-selected-card__meta">${locations.length ? formatPhysicianLocationLabel(locations[0]) : "One location on file"}</p>
-        </div>
-      </div>
-    `;
-  }
-
   return `
     <label class="modal-field">
       <span class="modal-field__label">Location</span>
       <select class="modal-input" name="locationId">
-        ${locations.map((location) => `
+        ${locations.length
+          ? locations.map((location) => `
           <option value="${escapeAttribute(location.id)}"${location.id === selectedLocationId ? " selected" : ""}>
             ${escapeAttribute(formatPhysicianLocationLabel(location))}
           </option>
-        `).join("")}
+        `).join("")
+          : '<option value="">No locations available</option>'}
       </select>
     </label>
   `;
@@ -2239,12 +2230,10 @@ function mapPhysicianResult(result) {
 
 function mapPhysicianLocations(result) {
   const addresses = Array.isArray(result.addresses) ? result.addresses : [];
-  const locationAddresses = addresses.filter((item) => item.address_purpose === "LOCATION");
-  const sourceAddresses = locationAddresses.length ? locationAddresses : addresses.slice(0, 1);
   const deduped = [];
   const seen = new Set();
 
-  sourceAddresses.forEach((address, index) => {
+  addresses.forEach((address, index) => {
     const postalCode = String(address.postal_code || "").slice(0, 5);
     const key = [
       address.address_1 || "",
