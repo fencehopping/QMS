@@ -168,6 +168,7 @@ const insuranceEditState = {
   manualEntry: false,
   providerInput: profileState.insurance.primaryPayer,
   error: "",
+  isSuggestionOpen: false,
 };
 
 const physicianSearchState = {
@@ -414,6 +415,16 @@ function initNav() {
     if (!event.target.matches("[data-insurance-provider-input]")) return;
     insuranceEditState.providerInput = event.target.value;
     insuranceEditState.error = "";
+    insuranceEditState.isSuggestionOpen = true;
+    refreshInsuranceAutocompleteUi();
+  });
+
+  document.addEventListener("focusin", (event) => {
+    if (!(event.target instanceof HTMLInputElement)) return;
+    if (!event.target.matches("[data-insurance-provider-input]")) return;
+    if (insuranceEditState.manualEntry) return;
+    insuranceEditState.isSuggestionOpen = true;
+    refreshInsuranceAutocompleteUi();
   });
 
   document.addEventListener("click", (event) => {
@@ -423,6 +434,15 @@ function initNav() {
       !physicianShell.contains(event.target instanceof Node ? event.target : null)
     ) {
       closePhysicianSuggestions();
+    }
+    const insurancePicker = document.querySelector("[data-insurance-provider-picker]");
+    if (
+      insurancePicker instanceof HTMLElement
+      && event.target instanceof Node
+      && !insurancePicker.contains(event.target)
+    ) {
+      insuranceEditState.isSuggestionOpen = false;
+      refreshInsuranceAutocompleteUi();
     }
 
     const closeTrigger = event.target.closest("[data-modal-close]");
@@ -508,6 +528,15 @@ function initNav() {
       }
       return;
     }
+    const insuranceProviderOption = event.target.closest("[data-insurance-provider-option]");
+    if (insuranceProviderOption instanceof HTMLElement) {
+      insuranceEditState.providerInput = insuranceProviderOption.dataset.insuranceProviderOption || "";
+      insuranceEditState.error = "";
+      insuranceEditState.isSuggestionOpen = false;
+      syncInsuranceProviderInput();
+      refreshInsuranceAutocompleteUi();
+      return;
+    }
     const insuranceEntryModeTrigger = event.target.closest("[data-insurance-entry-mode]");
     if (insuranceEntryModeTrigger instanceof HTMLElement) {
       const providerInput = modalForm.querySelector("[data-insurance-provider-input]");
@@ -516,6 +545,7 @@ function initNav() {
       }
       insuranceEditState.manualEntry = insuranceEntryModeTrigger.dataset.insuranceEntryMode === "manual";
       insuranceEditState.error = "";
+      insuranceEditState.isSuggestionOpen = false;
       openModal("insurance");
       return;
     }
@@ -1542,6 +1572,7 @@ function initializeInsuranceEditState(providerName = "") {
     ? !Boolean(resolveInsuranceProviderName(submittedProvider))
     : false;
   insuranceEditState.error = "";
+  insuranceEditState.isSuggestionOpen = false;
 }
 
 async function loadInsuranceProviders() {
@@ -1595,16 +1626,10 @@ function renderInsuranceProviderField() {
         : "Search the provider list, then select the closest match.";
   const toggleLabel = insuranceEditState.manualEntry ? "Use provider list instead" : "Can't find it? Enter manually";
   const toggleMode = insuranceEditState.manualEntry ? "list" : "manual";
-  const listMarkup = insuranceEditState.manualEntry
-    ? ""
-    : `
-      <datalist id="insurance-provider-options">
-        ${insuranceProviderState.items.map((provider) => `<option value="${escapeAttribute(provider)}"></option>`).join("")}
-      </datalist>
-    `;
+  const suggestionsMarkup = renderInsuranceProviderSuggestions();
 
   return `
-    <div class="insurance-provider-picker">
+    <div class="insurance-provider-picker" data-insurance-provider-picker>
       <label class="modal-field">
         <span class="modal-field__label">Insurance Provider</span>
         <input
@@ -1612,12 +1637,13 @@ function renderInsuranceProviderField() {
           type="text"
           name="primaryPayer"
           value="${escapeAttribute(providerValue)}"
-          ${insuranceEditState.manualEntry ? "" : 'list="insurance-provider-options"'}
           autocomplete="off"
           data-insurance-provider-input
         />
       </label>
-      ${listMarkup}
+      <div class="insurance-provider-picker__suggestions" data-insurance-provider-suggestions>
+        ${suggestionsMarkup}
+      </div>
       <div class="insurance-provider-picker__footer">
         <p class="insurance-provider-picker__helper">${helperText}</p>
         <button class="insurance-provider-picker__toggle" data-insurance-entry-mode="${toggleMode}" type="button">${toggleLabel}</button>
@@ -1644,6 +1670,65 @@ function validateInsuranceModalSubmission(formData) {
   }
 
   return true;
+}
+
+function renderInsuranceProviderSuggestions() {
+  if (insuranceEditState.manualEntry || !insuranceProviderState.loaded || !insuranceEditState.isSuggestionOpen) {
+    return "";
+  }
+
+  const suggestions = getInsuranceProviderSuggestions(insuranceEditState.providerInput);
+  if (!suggestions.length) {
+    return '<p class="insurance-provider-picker__empty">No matching providers found.</p>';
+  }
+
+  return suggestions
+    .map((provider) => `
+      <button
+        class="insurance-provider-picker__option"
+        data-insurance-provider-option="${escapeAttribute(provider)}"
+        type="button"
+      >${escapeAttribute(provider)}</button>
+    `)
+    .join("");
+}
+
+function getInsuranceProviderSuggestions(query) {
+  const normalizedQuery = normalizeInsuranceProviderName(query);
+  const startsWith = [];
+  const contains = [];
+
+  for (const provider of insuranceProviderState.items) {
+    const normalizedProvider = normalizeInsuranceProviderName(provider);
+    if (!normalizedQuery) {
+      startsWith.push(provider);
+      if (startsWith.length >= 8) break;
+      continue;
+    }
+    if (normalizedProvider.startsWith(normalizedQuery)) {
+      startsWith.push(provider);
+      continue;
+    }
+    if (normalizedProvider.includes(normalizedQuery)) {
+      contains.push(provider);
+    }
+  }
+
+  return [...startsWith, ...contains].slice(0, 8);
+}
+
+function refreshInsuranceAutocompleteUi() {
+  const suggestions = document.querySelector("[data-insurance-provider-suggestions]");
+  if (suggestions) {
+    suggestions.innerHTML = renderInsuranceProviderSuggestions();
+  }
+}
+
+function syncInsuranceProviderInput() {
+  const providerInput = document.querySelector("[data-insurance-provider-input]");
+  if (providerInput instanceof HTMLInputElement) {
+    providerInput.value = insuranceEditState.providerInput;
+  }
 }
 
 function resolveInsuranceProviderName(providerName) {
