@@ -539,11 +539,8 @@ function initNav() {
     }
     const insuranceEntryModeTrigger = event.target.closest("[data-insurance-entry-mode]");
     if (insuranceEntryModeTrigger instanceof HTMLElement) {
-      const providerInput = modalForm.querySelector("[data-insurance-provider-input]");
-      if (providerInput instanceof HTMLInputElement) {
-        insuranceEditState.providerInput = providerInput.value;
-      }
       insuranceEditState.manualEntry = insuranceEntryModeTrigger.dataset.insuranceEntryMode === "manual";
+      insuranceEditState.providerInput = "";
       insuranceEditState.error = "";
       insuranceEditState.isSuggestionOpen = false;
       openModal("insurance");
