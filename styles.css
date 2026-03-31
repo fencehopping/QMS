@@ -2343,14 +2343,90 @@ button {
     width: 100%;
   }
 
+  .modal-card--physician-results {
+    max-height: calc(100dvh - 24px);
+    min-height: calc(100dvh - 24px);
+  }
+
   .modal-card__header,
   .modal-form {
     padding-left: 16px;
     padding-right: 16px;
   }
 
+  .modal-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .modal-close {
+    align-self: flex-end;
+  }
+
   .physician-modal__scroll-region {
-    max-height: min(54vh, 520px);
+    flex: 1 1 auto;
+    max-height: none;
+    padding-right: 0;
+    padding-bottom: 4px;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .physician-modal {
+    gap: 14px;
+  }
+
+  .physician-modal__topbar {
+    gap: 12px;
+    padding-bottom: 14px;
+  }
+
+  .physician-modal__sort-actions {
+    width: 100%;
+  }
+
+  .physician-modal__sort-button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .physician-modal__search-button,
+  .physician-modal__select,
+  .physician-modal__pager {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .physician-modal__row {
+    gap: 12px;
+    padding: 14px 0;
+  }
+
+  .physician-modal__details,
+  .physician-modal__details > div {
+    width: 100%;
+  }
+
+  .physician-modal__footer {
+    gap: 12px;
+    padding-top: 12px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
+  }
+
+  .physician-modal__pagination,
+  .physician-modal__pages {
+    width: 100%;
+  }
+
+  .physician-modal__pages {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .physician-modal__page {
+    min-width: 36px;
+    min-height: 36px;
   }
 
   .modal-actions {
