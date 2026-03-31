@@ -2431,6 +2431,13 @@ button {
     padding-right: 16px;
   }
 
+  .modal-input,
+  .physician-search__mini-field input,
+  .physician-search__input input,
+  .physician-modal__search .modal-input {
+    font-size: 16px;
+  }
+
   .modal-card__header {
     flex-direction: column;
     align-items: flex-start;
