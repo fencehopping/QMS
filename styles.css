@@ -2426,14 +2426,26 @@ button {
     padding-bottom: 14px;
   }
 
+  .physician-modal__topbar.is-collapsed .physician-modal__sortbar {
+    display: none;
+  }
+
   .physician-modal__summary {
     flex-direction: column;
     align-items: stretch;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
   }
 
   .physician-modal__summary-action {
     width: 100%;
     min-height: 44px;
+  }
+
+  .physician-modal__summary-value {
+    font-size: 0.84rem;
   }
 
   .physician-modal__sort-actions {
@@ -2482,6 +2494,11 @@ button {
   .physician-modal__page {
     min-width: 36px;
     min-height: 36px;
+  }
+
+  .physician-modal__results {
+    width: 100%;
+    overflow-x: clip;
   }
 
   .modal-actions {

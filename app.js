@@ -1893,6 +1893,7 @@ function formatCityStateZip(city, state, zip) {
 }
 
 function renderPhysicianSearchResultsModal() {
+  const isMobileSearchModal = isCompactPhysicianSearchModal();
   const results = getSortedPhysicianResults();
   const totalResults = physicianSearchState.total;
   const perPage = physicianResultsPerPage;
@@ -1900,8 +1901,8 @@ function renderPhysicianSearchResultsModal() {
   const currentPage = Math.min(physicianResultsPage, totalPages);
   physicianResultsPage = currentPage;
   const start = (currentPage - 1) * perPage;
-  const pagedResults = results.slice(start, start + perPage);
-  const end = Math.min(start + pagedResults.length, totalResults);
+  const visibleResults = isMobileSearchModal ? results : results.slice(start, start + perPage);
+  const end = Math.min(start + visibleResults.length, totalResults);
   const lastPage = totalPages;
   const sortLabel = physicianSearchState.sortField === "city" ? "City" : "First Name";
   const sortDirectionLabel = physicianSearchState.sortDirection === "asc" ? "Ascending" : "Descending";
@@ -1926,8 +1927,8 @@ function renderPhysicianSearchResultsModal() {
           <p>${physicianSearchState.error}</p>
         </div>
       `
-      : pagedResults.length
-        ? pagedResults
+      : visibleResults.length
+        ? visibleResults
         .map(
           (physician) => `
             <article class="physician-modal__row">
@@ -1957,7 +1958,7 @@ function renderPhysicianSearchResultsModal() {
   return `
     <section class="physician-modal">
       <div class="physician-modal__topbar${showCollapsedFilters ? " is-collapsed" : ""}">
-        ${showCollapsedFilters ? renderPhysicianSearchSummary() : renderPhysicianSearchFilters()}
+        ${showCollapsedFilters ? renderPhysicianSearchSummary(isMobileSearchModal) : renderPhysicianSearchFilters()}
         <div class="physician-modal__sortbar">
           <p class="physician-modal__sort-label">Sort: ${sortLabel} (${sortDirectionLabel})</p>
           <div class="physician-modal__sort-actions">
@@ -1970,10 +1971,12 @@ function renderPhysicianSearchResultsModal() {
         <div class="physician-modal__results">
           ${rows}
         </div>
-        <div class="physician-modal__footer">
-          <p>Showing ${totalResults ? start + 1 : 0}-${end} of ${totalResults} entries</p>
-          ${renderPhysicianPagination(currentPage, totalPages, lastPage)}
-        </div>
+        ${isMobileSearchModal ? "" : `
+          <div class="physician-modal__footer">
+            <p>Showing ${totalResults ? start + 1 : 0}-${end} of ${totalResults} entries</p>
+            ${renderPhysicianPagination(currentPage, totalPages, lastPage)}
+          </div>
+        `}
       </div>
     </section>
   `;
@@ -2001,7 +2004,7 @@ function renderPhysicianSearchFilters() {
   `;
 }
 
-function renderPhysicianSearchSummary() {
+function renderPhysicianSearchSummary(isMobileSearchModal = false) {
   const parts = [
     profileState.physician.searchName ? `Name: ${profileState.physician.searchName}` : "",
     profileState.physician.searchCity ? `City: ${profileState.physician.searchCity}` : "",
@@ -2014,9 +2017,15 @@ function renderPhysicianSearchSummary() {
         <p class="physician-modal__summary-label">Search</p>
         <p class="physician-modal__summary-value">${parts.join(" • ") || "Current physician lookup"}</p>
       </div>
-      <button class="physician-modal__summary-action" data-physician-edit-search type="button">Edit Search</button>
+      <button class="physician-modal__summary-action" data-physician-edit-search type="button">${isMobileSearchModal ? "Back to Search" : "Edit Search"}</button>
     </div>
   `;
+}
+
+function isCompactPhysicianSearchModal() {
+  return typeof window !== "undefined"
+    && typeof window.matchMedia === "function"
+    && window.matchMedia("(max-width: 640px)").matches;
 }
 
 function renderPhysicianSortButton(field, label) {
