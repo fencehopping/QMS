@@ -182,6 +182,10 @@ const physicianSearchState = {
   sortDirection: "asc",
 };
 
+const physicianModalUiState = {
+  filtersCollapsed: false,
+};
+
 const fitterDashboardState = {
   sortField: "nextShipment",
   sortDirection: "asc",
@@ -467,6 +471,7 @@ function initNav() {
     if (physicianSearchTrigger) {
       activePhysicianSlot = "primary";
       physicianResultsPage = 1;
+      physicianModalUiState.filtersCollapsed = true;
       void fetchPhysicians({ page: 1, openModal: true });
       return;
     }
@@ -482,13 +487,21 @@ function initNav() {
       const requestedSlot = physicianPickerTrigger.dataset.openPhysicianPicker;
       activePhysicianSlot = requestedSlot === "secondary" ? "secondary" : "primary";
       profileState.physician.searchName = "";
+      physicianModalUiState.filtersCollapsed = false;
       openPhysicianPicker();
       return;
     }
     const physicianSearchSubmit = event.target.closest("[data-physician-search-submit]");
     if (physicianSearchSubmit) {
       physicianResultsPage = 1;
+      physicianModalUiState.filtersCollapsed = true;
       void fetchPhysicians({ page: 1, openModal: true });
+      return;
+    }
+    const physicianEditSearchTrigger = event.target.closest("[data-physician-edit-search]");
+    if (physicianEditSearchTrigger) {
+      physicianModalUiState.filtersCollapsed = false;
+      openModal("physician-search-results");
       return;
     }
     const physicianSortTrigger = event.target.closest("[data-physician-sort]");
@@ -1892,6 +1905,8 @@ function renderPhysicianSearchResultsModal() {
   const lastPage = totalPages;
   const sortLabel = physicianSearchState.sortField === "city" ? "City" : "First Name";
   const sortDirectionLabel = physicianSearchState.sortDirection === "asc" ? "Ascending" : "Descending";
+  const canCollapseFilters = physicianSearchState.loading || physicianSearchState.hasSearched;
+  const showCollapsedFilters = physicianModalUiState.filtersCollapsed && canCollapseFilters;
 
   const rows = physicianSearchState.loading
     ? `
@@ -1941,24 +1956,8 @@ function renderPhysicianSearchResultsModal() {
 
   return `
     <section class="physician-modal">
-      <div class="physician-modal__topbar">
-        <div class="physician-modal__filters">
-          <label class="modal-field">
-            <span class="modal-field__label">State</span>
-            <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchState)}" name="searchState" data-modal-physician-filter="searchState" />
-          </label>
-          <label class="modal-field">
-            <span class="modal-field__label">City</span>
-            <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchCity)}" name="searchCity" data-modal-physician-filter="searchCity" />
-          </label>
-          <label class="modal-field physician-modal__name-field">
-            <span class="modal-field__label">Last Name</span>
-            <div class="physician-modal__search">
-              <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchName)}" name="searchName" data-modal-physician-filter="searchName" />
-              <button class="pill-button physician-modal__search-button" data-physician-search-submit type="button">Search</button>
-            </div>
-          </label>
-        </div>
+      <div class="physician-modal__topbar${showCollapsedFilters ? " is-collapsed" : ""}">
+        ${showCollapsedFilters ? renderPhysicianSearchSummary() : renderPhysicianSearchFilters()}
         <div class="physician-modal__sortbar">
           <p class="physician-modal__sort-label">Sort: ${sortLabel} (${sortDirectionLabel})</p>
           <div class="physician-modal__sort-actions">
@@ -1977,6 +1976,46 @@ function renderPhysicianSearchResultsModal() {
         </div>
       </div>
     </section>
+  `;
+}
+
+function renderPhysicianSearchFilters() {
+  return `
+    <div class="physician-modal__filters">
+      <label class="modal-field">
+        <span class="modal-field__label">State</span>
+        <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchState)}" name="searchState" data-modal-physician-filter="searchState" />
+      </label>
+      <label class="modal-field">
+        <span class="modal-field__label">City</span>
+        <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchCity)}" name="searchCity" data-modal-physician-filter="searchCity" />
+      </label>
+      <label class="modal-field physician-modal__name-field">
+        <span class="modal-field__label">Last Name</span>
+        <div class="physician-modal__search">
+          <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchName)}" name="searchName" data-modal-physician-filter="searchName" />
+          <button class="pill-button physician-modal__search-button" data-physician-search-submit type="button">Search</button>
+        </div>
+      </label>
+    </div>
+  `;
+}
+
+function renderPhysicianSearchSummary() {
+  const parts = [
+    profileState.physician.searchName ? `Name: ${profileState.physician.searchName}` : "",
+    profileState.physician.searchCity ? `City: ${profileState.physician.searchCity}` : "",
+    profileState.physician.searchState ? `State: ${profileState.physician.searchState}` : "",
+  ].filter(Boolean);
+
+  return `
+    <div class="physician-modal__summary">
+      <div>
+        <p class="physician-modal__summary-label">Search</p>
+        <p class="physician-modal__summary-value">${parts.join(" • ") || "Current physician lookup"}</p>
+      </div>
+      <button class="physician-modal__summary-action" data-physician-edit-search type="button">Edit Search</button>
+    </div>
   `;
 }
 
@@ -2091,6 +2130,7 @@ async function fetchPhysicians({ page = 1, openModal = false } = {}) {
     physicianSearchState.loading = false;
     physicianSearchState.error = "";
     physicianSearchState.hasSearched = false;
+    physicianModalUiState.filtersCollapsed = false;
     refreshPhysicianSearchUi({ openModal });
     return;
   }
@@ -2166,6 +2206,7 @@ function openPhysicianPicker() {
   physicianSearchState.loading = false;
   physicianSearchState.error = "";
   physicianSearchState.hasSearched = false;
+  physicianModalUiState.filtersCollapsed = false;
   openModal("physician-search-results");
 }
 
