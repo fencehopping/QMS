@@ -342,6 +342,9 @@ button {
   z-index: 80;
   display: grid;
   place-items: center;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   padding: 20px;
 }
 
@@ -360,6 +363,7 @@ button {
   position: relative;
   z-index: 1;
   width: min(100%, 720px);
+  max-width: 100%;
   max-height: min(88vh, 920px);
   overflow: auto;
   border: 1px solid rgba(255, 255, 255, 0.72);
@@ -412,6 +416,10 @@ button {
 .modal-form {
   display: grid;
   gap: 16px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
   padding: 20px 22px 22px;
 }
 
@@ -2393,11 +2401,15 @@ button {
   }
 
   .modal-layer {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
     padding: 12px;
   }
 
   .modal-card {
     width: 100%;
+    max-width: calc(100vw - 24px);
     border-radius: 20px;
   }
 
@@ -2412,6 +2424,9 @@ button {
 
   .modal-card__header,
   .modal-form {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     padding-left: 16px;
     padding-right: 16px;
   }
@@ -2436,11 +2451,17 @@ button {
 
   .physician-modal {
     gap: 14px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .physician-modal__topbar {
     gap: 12px;
     padding-bottom: 14px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .physician-modal__topbar.is-collapsed .physician-modal__sortbar {
@@ -2515,7 +2536,19 @@ button {
 
   .physician-modal__results {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     overflow-x: clip;
+  }
+
+  .physician-modal__row,
+  .physician-modal__identity,
+  .physician-modal__details,
+  .physician-modal__summary,
+  .physician-modal__summary > div {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .modal-actions {
