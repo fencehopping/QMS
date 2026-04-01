@@ -96,6 +96,7 @@ const modalForm = document.querySelector("#modalForm");
 const modalEyebrow = document.querySelector("#modalEyebrow");
 const modalSubtitle = document.querySelector("#modalSubtitle");
 const modalCard = document.querySelector(".modal-card");
+const modalHeader = document.querySelector(".modal-card__header");
 let currentRoute = "profile";
 let currentPortal = "patient";
 let activeModalTarget = "";
@@ -103,6 +104,8 @@ let activePhysicianSlot = "primary";
 let physicianResultsPage = 1;
 let physicianSearchRequestId = 0;
 let physicianSearchDebounce = 0;
+let hasShownOnboardingFlow = false;
+let onboardingProcessingTimeout = 0;
 const insuranceProviderDataUrl = "./Insurance%20Drop%20Down/insurance_dropdown_full.json";
 
 const profileState = {
@@ -131,13 +134,13 @@ const profileState = {
     secondaryPolicyNumber: "",
   },
   addresses: {
-    billingName: "Nick Holroyd",
     billingStreet: "65 Pin Oak Dr",
+    billingUnit: "",
     billingCity: "Scituate",
     billingState: "MA",
     billingZip: "02066",
-    shippingName: "",
     shippingStreet: "",
+    shippingUnit: "",
     shippingCity: "",
     shippingState: "",
     shippingZip: "",
@@ -169,6 +172,11 @@ const insuranceEditState = {
   providerInput: profileState.insurance.primaryPayer,
   error: "",
   isSuggestionOpen: false,
+};
+
+const onboardingState = {
+  medicareNumber: "",
+  error: "",
 };
 
 const physicianSearchState = {
@@ -338,6 +346,7 @@ const fitterColumns = [
 initNav();
 void loadInsuranceProviders();
 syncRoute();
+maybeLaunchOnboardingFlow();
 window.addEventListener("hashchange", syncRoute);
 menuButton.addEventListener("click", () => {
   sidebar.classList.toggle("is-open");
@@ -454,6 +463,29 @@ function initNav() {
       closeModal();
       return;
     }
+    const onboardingNextTrigger = event.target.closest("[data-onboarding-next]");
+    if (onboardingNextTrigger) {
+      onboardingState.error = "";
+      openModal("onboarding-medicare-question");
+      return;
+    }
+    const onboardingChoiceTrigger = event.target.closest("[data-onboarding-choice]");
+    if (onboardingChoiceTrigger instanceof HTMLElement) {
+      const choice = onboardingChoiceTrigger.dataset.onboardingChoice;
+      onboardingState.error = "";
+      if (choice === "yes") {
+        onboardingState.medicareNumber = profileState.insurance.primaryPayer === "Medicare"
+          ? profileState.insurance.providerAccountNumber
+          : onboardingState.medicareNumber;
+        openModal("onboarding-medicare-number");
+      } else if (choice === "no") {
+        initializeInsuranceEditState(profileState.insurance.primaryPayer === "Medicare" ? "" : profileState.insurance.primaryPayer);
+        insuranceEditState.manualEntry = false;
+        insuranceEditState.isSuggestionOpen = true;
+        openModal("onboarding-insurance");
+      }
+      return;
+    }
     const secondaryChoice = event.target.closest("[data-secondary-choice]");
     if (secondaryChoice instanceof HTMLElement) {
       const choice = secondaryChoice.dataset.secondaryChoice;
@@ -486,9 +518,17 @@ function initNav() {
     if (physicianPickerTrigger instanceof HTMLElement) {
       const requestedSlot = physicianPickerTrigger.dataset.openPhysicianPicker;
       activePhysicianSlot = requestedSlot === "secondary" ? "secondary" : "primary";
-      profileState.physician.searchName = "";
-      physicianModalUiState.filtersCollapsed = false;
-      openPhysicianPicker();
+      if (activeModalTarget === "edit-physician") {
+        const physicianRecord = getPhysicianRecord(activePhysicianSlot);
+        profileState.physician.searchName = physicianRecord.lastName || "";
+        physicianResultsPage = 1;
+        physicianModalUiState.filtersCollapsed = true;
+        void fetchPhysicians({ page: 1, openModal: true });
+      } else {
+        profileState.physician.searchName = "";
+        physicianModalUiState.filtersCollapsed = false;
+        openPhysicianPicker();
+      }
       return;
     }
     const physicianSearchSubmit = event.target.closest("[data-physician-search-submit]");
@@ -575,6 +615,9 @@ function initNav() {
   modalForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const formData = new FormData(modalForm);
+    if (handleOnboardingModalSubmit(formData)) {
+      return;
+    }
     if (activeModalTarget === "insurance" && !validateInsuranceModalSubmission(formData)) {
       openModal("insurance");
       return;
@@ -609,6 +652,12 @@ function syncRoute() {
     button.classList.toggle("is-active", button.dataset.mobileRoute === routeKey);
   });
   closeSidebar();
+}
+
+function maybeLaunchOnboardingFlow() {
+  if (hasShownOnboardingFlow || currentPortal !== "patient") return;
+  hasShownOnboardingFlow = true;
+  openModal("onboarding-welcome");
 }
 
 function closeSidebar() {
@@ -829,19 +878,19 @@ function renderProfile() {
 
         <section class="intake-section">
           <div class="intake-section__heading">
-            <h2>Confirm Billing Address</h2>
+            <h2>Addresses</h2>
           </div>
           <div class="card intake-panel">
             <div class="intake-address-grid">
               <article class="card intake-data-card">
                 <div class="surface-card__header intake-card__header">
-                  <span>Billing Address</span>
+                  <span>Physical Address</span>
                   <button class="icon-edit" data-edit-target="billing-address" type="button" aria-label="Edit billing address">Edit</button>
                 </div>
                 <div class="intake-address-body">
                   <p class="intake-address-label">Address</p>
-                  <p>${profileState.addresses.billingName}</p>
                   <p>${profileState.addresses.billingStreet}</p>
+                  ${profileState.addresses.billingUnit ? `<p>${profileState.addresses.billingUnit}</p>` : ""}
                   <p>${formatCityStateZip(profileState.addresses.billingCity, profileState.addresses.billingState, profileState.addresses.billingZip)}</p>
                 </div>
               </article>
@@ -854,8 +903,8 @@ function renderProfile() {
                     </div>
                     <div class="intake-address-body">
                       <p class="intake-address-label">Address</p>
-                      <p>${profileState.addresses.shippingName}</p>
                       <p>${profileState.addresses.shippingStreet}</p>
+                      ${profileState.addresses.shippingUnit ? `<p>${profileState.addresses.shippingUnit}</p>` : ""}
                       <p>${formatCityStateZip(profileState.addresses.shippingCity, profileState.addresses.shippingState, profileState.addresses.shippingZip)}</p>
                     </div>
                   </article>
@@ -1153,6 +1202,7 @@ function renderPhysicianCard(title, physician, slot) {
         ${physician.address2 ? `<p>${physician.address2}</p>` : ""}
         <p>${formatCityStateZip(physician.city, physician.state, physician.zipCode)}</p>
         ${physician.phoneNumber ? `<p>${physician.phoneNumber}</p>` : ""}
+        ${physician.faxNumber ? `<p>Fax: ${physician.faxNumber}</p>` : ""}
       </div>
     </article>
   `;
@@ -1165,8 +1215,7 @@ function isProfileReadyForProductSelection() {
     && profileState.insurance.insuranceType,
   );
   const hasBillingAddress = Boolean(
-    profileState.addresses.billingName
-    && profileState.addresses.billingStreet
+    profileState.addresses.billingStreet
     && profileState.addresses.billingCity
     && profileState.addresses.billingState
     && profileState.addresses.billingZip,
@@ -1281,8 +1330,8 @@ function summaryBox(label, value) {
 }
 
 function openModal(target) {
-  if (target === "insurance") {
-    if (activeModalTarget !== "insurance") {
+  if (target === "insurance" || target === "onboarding-insurance") {
+    if (activeModalTarget !== "insurance" && activeModalTarget !== "onboarding-insurance") {
       initializeInsuranceEditState(profileState.insurance.primaryPayer);
     }
     if (!insuranceProviderState.loaded && !insuranceProviderState.loading) {
@@ -1295,6 +1344,10 @@ function openModal(target) {
   if (modalCard instanceof HTMLElement) {
     modalCard.classList.toggle("modal-card--wide", config.variant === "wide");
     modalCard.classList.toggle("modal-card--physician-results", target === "physician-search-results");
+    modalCard.classList.toggle("modal-card--onboarding", config.variant === "onboarding");
+  }
+  if (modalHeader instanceof HTMLElement) {
+    modalHeader.hidden = config.variant === "onboarding";
   }
   modalEyebrow.textContent = config.eyebrow || "Edit Details";
   modalTitle.textContent = config.title;
@@ -1309,11 +1362,17 @@ function openModal(target) {
 
 function closeModal() {
   activeModalTarget = "";
+  window.clearTimeout(onboardingProcessingTimeout);
+  onboardingProcessingTimeout = 0;
   modalLayer.hidden = true;
   document.body.classList.remove("is-modal-open");
   if (modalCard instanceof HTMLElement) {
     modalCard.classList.remove("modal-card--wide");
     modalCard.classList.remove("modal-card--physician-results");
+    modalCard.classList.remove("modal-card--onboarding");
+  }
+  if (modalHeader instanceof HTMLElement) {
+    modalHeader.hidden = false;
   }
   modalEyebrow.textContent = "";
   modalTitle.textContent = "";
@@ -1401,6 +1460,36 @@ function renderNavigation() {
 
 function modalConfig(target) {
   switch (target) {
+    case "onboarding-welcome":
+      return {
+        title: "Welcome to Quantum Medical Supply!",
+        variant: "onboarding",
+        body: renderOnboardingWelcomeStep(),
+      };
+    case "onboarding-medicare-question":
+      return {
+        title: "Do you have medicare?",
+        variant: "onboarding",
+        body: renderOnboardingMedicareQuestionStep(),
+      };
+    case "onboarding-medicare-number":
+      return {
+        title: "Please enter your 11 digit medicare number.",
+        variant: "onboarding",
+        body: renderOnboardingMedicareNumberStep(),
+      };
+    case "onboarding-insurance":
+      return {
+        title: "Ok, let's get some insurance information.",
+        variant: "onboarding",
+        body: renderOnboardingInsuranceStep(),
+      };
+    case "onboarding-processing":
+      return {
+        title: "Verifying Insurance...",
+        variant: "onboarding",
+        body: renderOnboardingProcessingStep(),
+      };
     case "prequalifying":
       return {
         eyebrow: "Edit Details",
@@ -1424,10 +1513,10 @@ function modalConfig(target) {
     case "billing-address":
       return {
         eyebrow: "Edit Details",
-        title: "Edit Billing Address",
+        title: "Edit Physical Address",
         fields: `
-          ${modalField("Billing Name", "billingName", profileState.addresses.billingName)}
-          ${modalField("Billing Street", "billingStreet", profileState.addresses.billingStreet)}
+          ${modalField("Address", "billingStreet", profileState.addresses.billingStreet)}
+          ${modalField("Unit/Suite", "billingUnit", profileState.addresses.billingUnit)}
           <div class="modal-grid modal-grid--address">
             ${modalField("City", "billingCity", profileState.addresses.billingCity)}
             ${modalField("State", "billingState", profileState.addresses.billingState)}
@@ -1440,8 +1529,8 @@ function modalConfig(target) {
         eyebrow: "Edit Details",
         title: profileState.addresses.shippingStreet ? "Edit Shipping Address" : "Add Shipping Address",
         fields: `
-          ${modalField("Shipping Name", "shippingName", profileState.addresses.shippingName)}
-          ${modalField("Shipping Street", "shippingStreet", profileState.addresses.shippingStreet)}
+          ${modalField("Address", "shippingStreet", profileState.addresses.shippingStreet)}
+          ${modalField("Unit/Suite", "shippingUnit", profileState.addresses.shippingUnit)}
           <div class="modal-grid modal-grid--address">
             ${modalField("City", "shippingCity", profileState.addresses.shippingCity)}
             ${modalField("State", "shippingState", profileState.addresses.shippingState)}
@@ -1479,9 +1568,10 @@ function modalConfig(target) {
         fields: `
           <div class="modal-grid modal-grid--physician">
             <div class="modal-stack">
-              ${modalField("NPI", "npi", physicianRecord.npi)}
               ${modalField("First Name", "firstName", physicianRecord.firstName)}
               ${modalField("Last Name", "lastName", physicianRecord.lastName)}
+              ${modalField("Phone Number", "phoneNumber", physicianRecord.phoneNumber, "tel")}
+              ${modalField("Fax Number", "faxNumber", physicianRecord.faxNumber, "tel")}
             </div>
             <div class="modal-stack">
               ${modalField("Address 1", "address1", physicianRecord.address1)}
@@ -1491,9 +1581,6 @@ function modalConfig(target) {
                 ${modalField("State", "state", physicianRecord.state)}
                 ${modalField("Zip Code", "zipCode", physicianRecord.zipCode)}
               </div>
-            </div>
-            <div class="modal-stack">
-              ${modalField("Phone Number", "phoneNumber", physicianRecord.phoneNumber, "tel")}
             </div>
           </div>
         `,
@@ -1537,15 +1624,15 @@ function applyModalChanges(target, formData) {
       profileState.insurance.providerAccountNumber = String(values.providerAccountNumber || "").trim();
       break;
     case "billing-address":
-      profileState.addresses.billingName = values.billingName || "";
       profileState.addresses.billingStreet = values.billingStreet || "";
+      profileState.addresses.billingUnit = values.billingUnit || "";
       profileState.addresses.billingCity = values.billingCity || "";
       profileState.addresses.billingState = values.billingState || "";
       profileState.addresses.billingZip = values.billingZip || "";
       break;
     case "shipping-address":
-      profileState.addresses.shippingName = values.shippingName || "";
       profileState.addresses.shippingStreet = values.shippingStreet || "";
+      profileState.addresses.shippingUnit = values.shippingUnit || "";
       profileState.addresses.shippingCity = values.shippingCity || "";
       profileState.addresses.shippingState = values.shippingState || "";
       profileState.addresses.shippingZip = values.shippingZip || "";
@@ -1567,6 +1654,40 @@ function applyModalChanges(target, formData) {
     default:
       break;
   }
+}
+
+function handleOnboardingModalSubmit(formData) {
+  const values = Object.fromEntries(formData.entries());
+
+  if (activeModalTarget === "onboarding-medicare-number") {
+    const medicareNumber = String(values.medicareNumber || "").replace(/\D/g, "").slice(0, 11);
+    if (medicareNumber.length !== 11) {
+      onboardingState.error = "Enter an 11 digit Medicare number.";
+      openModal("onboarding-medicare-number");
+      return true;
+    }
+
+    onboardingState.error = "";
+    onboardingState.medicareNumber = medicareNumber;
+    profileState.insurance.primaryPayer = "Medicare";
+    profileState.insurance.providerAccountNumber = medicareNumber;
+    startOnboardingProcessing();
+    return true;
+  }
+
+  if (activeModalTarget === "onboarding-insurance") {
+    if (!validateOnboardingInsuranceSubmission(formData)) {
+      openModal("onboarding-insurance");
+      return true;
+    }
+
+    profileState.insurance.primaryPayer = resolveInsuranceProviderName(values.primaryPayer) || String(values.primaryPayer || "").trim();
+    profileState.insurance.providerAccountNumber = String(values.policyNumber || "").trim();
+    startOnboardingProcessing();
+    return true;
+  }
+
+  return false;
 }
 
 function modalField(label, name, value, type = "text") {
@@ -1597,6 +1718,131 @@ function modalFooter(submitLabelOverride = "") {
       <button class="pill-button" type="submit">${submitLabel}</button>
     </div>
   `;
+}
+
+function renderOnboardingShell(content, stepClass = "") {
+  return `
+    <div class="onboarding-modal ${stepClass}">
+      <button class="onboarding-modal__close" data-modal-close type="button" aria-label="Close dialog">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <img class="onboarding-modal__logo" src="./logo.png" alt="Quantum Medical" />
+      <div class="onboarding-modal__surface">
+        ${content}
+      </div>
+    </div>
+  `;
+}
+
+function renderOnboardingWelcomeStep() {
+  return renderOnboardingShell(`
+    <div class="onboarding-modal__content onboarding-modal__content--welcome">
+      <div class="onboarding-modal__message-stack">
+        <h2 class="onboarding-modal__headline onboarding-modal__headline--accent">Welcome to Quantum Medical Supply!</h2>
+        <p class="onboarding-modal__subcopy">We emailed you your new login and password.</p>
+      </div>
+      <p class="onboarding-modal__lead">You now have access to the portal where you can track the progress of your orders. Let's add the information we need to get your products ordered.</p>
+      <button class="onboarding-modal__cta" data-onboarding-next type="button">
+        <span>Let's Complete Your Order</span>
+        <span class="onboarding-modal__cta-icon" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+      </button>
+    </div>
+  `, "onboarding-modal--welcome");
+}
+
+function renderOnboardingMedicareQuestionStep() {
+  return renderOnboardingShell(`
+    <div class="onboarding-modal__content onboarding-modal__content--question">
+      <h2 class="onboarding-modal__headline">Do you have medicare?</h2>
+      <div class="onboarding-modal__binary-actions">
+        <button class="onboarding-modal__choice onboarding-modal__choice--light" data-onboarding-choice="no" type="button">No</button>
+        <button class="onboarding-modal__choice onboarding-modal__choice--dark" data-onboarding-choice="yes" type="button">Yes</button>
+      </div>
+    </div>
+  `, "onboarding-modal--question");
+}
+
+function renderOnboardingMedicareNumberStep() {
+  return renderOnboardingShell(`
+    <div class="onboarding-modal__content onboarding-modal__content--capture">
+      <h2 class="onboarding-modal__headline">Please enter your 11 digit medicare number.</h2>
+      <div class="onboarding-modal__inline-form">
+        <label class="onboarding-modal__field onboarding-modal__field--medicare">
+          <span class="sr-only">Medicare Number</span>
+          <input
+            class="onboarding-modal__input onboarding-modal__input--tracking"
+            type="text"
+            name="medicareNumber"
+            inputmode="numeric"
+            maxlength="11"
+            placeholder="11111111111"
+            value="${escapeAttribute(onboardingState.medicareNumber)}"
+          />
+        </label>
+        <button class="onboarding-modal__submit" type="submit">Submit</button>
+      </div>
+      ${onboardingState.error ? `<p class="onboarding-modal__error">${onboardingState.error}</p>` : ""}
+    </div>
+  `, "onboarding-modal--capture");
+}
+
+function renderOnboardingInsuranceStep() {
+  const providerValue = insuranceEditState.providerInput;
+  const policyValue = profileState.insurance.primaryPayer === "Medicare" ? "" : profileState.insurance.providerAccountNumber;
+
+  return renderOnboardingShell(`
+    <div class="onboarding-modal__content onboarding-modal__content--insurance">
+      <h2 class="onboarding-modal__headline">Ok, let's get some insurance information.</h2>
+      <div class="onboarding-modal__insurance-grid">
+        <div class="insurance-provider-picker onboarding-modal__provider-picker" data-insurance-provider-picker>
+          <label class="onboarding-modal__field">
+            <span class="onboarding-modal__label">Insurance Provider</span>
+            <div class="onboarding-modal__select-shell">
+              <input
+                class="onboarding-modal__input"
+                type="text"
+                name="primaryPayer"
+                value="${escapeAttribute(providerValue)}"
+                placeholder="Search Providers"
+                autocomplete="off"
+                data-insurance-provider-input
+              />
+              <i class="fa-solid fa-chevron-down onboarding-modal__select-icon" aria-hidden="true"></i>
+            </div>
+          </label>
+          <div class="insurance-provider-picker__suggestions onboarding-modal__suggestions" data-insurance-provider-suggestions>
+            ${renderInsuranceProviderSuggestions()}
+          </div>
+        </div>
+        <label class="onboarding-modal__field">
+          <span class="onboarding-modal__label">Policy #</span>
+          <input class="onboarding-modal__input" type="text" name="policyNumber" value="${escapeAttribute(policyValue)}" />
+        </label>
+      </div>
+      ${insuranceEditState.error ? `<p class="onboarding-modal__error">${insuranceEditState.error}</p>` : ""}
+      <div class="onboarding-modal__actions onboarding-modal__actions--end">
+        <button class="onboarding-modal__submit" type="submit">Submit</button>
+      </div>
+    </div>
+  `, "onboarding-modal--insurance");
+}
+
+function renderOnboardingProcessingStep() {
+  return renderOnboardingShell(`
+    <div class="onboarding-modal__content onboarding-modal__content--processing">
+      <div class="onboarding-modal__spinner" aria-hidden="true"></div>
+      <h2 class="onboarding-modal__headline">Verifying Insurance...</h2>
+    </div>
+  `, "onboarding-modal--processing");
+}
+
+function startOnboardingProcessing() {
+  onboardingState.error = "";
+  openModal("onboarding-processing");
+  onboardingProcessingTimeout = window.setTimeout(() => {
+    closeModal();
+    rerenderCurrentRoute();
+  }, 1600);
 }
 
 function initializeInsuranceEditState(providerName = "") {
@@ -1643,8 +1889,8 @@ async function loadInsuranceProviders() {
     ) {
       insuranceEditState.manualEntry = true;
     }
-    if (activeModalTarget === "insurance") {
-      openModal("insurance");
+    if (activeModalTarget === "insurance" || activeModalTarget === "onboarding-insurance") {
+      openModal(activeModalTarget);
     }
   }
 }
@@ -1700,6 +1946,28 @@ function validateInsuranceModalSubmission(formData) {
 
   if (!insuranceEditState.manualEntry && !resolveInsuranceProviderName(submittedProvider)) {
     insuranceEditState.error = "Choose a provider from the list, or switch to manual entry if it is not listed.";
+    return false;
+  }
+
+  return true;
+}
+
+function validateOnboardingInsuranceSubmission(formData) {
+  const values = Object.fromEntries(formData.entries());
+  const submittedProvider = String(values.primaryPayer || "").trim();
+  const policyNumber = String(values.policyNumber || "").trim();
+
+  insuranceEditState.providerInput = submittedProvider;
+  insuranceEditState.error = "";
+  insuranceEditState.isSuggestionOpen = true;
+
+  if (!submittedProvider) {
+    insuranceEditState.error = "Select an insurance provider.";
+    return false;
+  }
+
+  if (!policyNumber) {
+    insuranceEditState.error = "Enter the policy number.";
     return false;
   }
 
@@ -1794,6 +2062,7 @@ function emptyPhysicianRecord() {
     state: "",
     zipCode: "",
     phoneNumber: "",
+    faxNumber: "",
     locationId: "",
     locations: [],
   };
@@ -1807,7 +2076,7 @@ function getPhysicianRecord(slot = "primary") {
 
 function setPhysicianRecord(slot, values) {
   const record = getPhysicianRecord(slot);
-  record.npi = values.npi || "";
+  record.npi = values.npi ?? record.npi ?? "";
   record.firstName = values.firstName || "";
   record.lastName = values.lastName || "";
   record.address1 = values.address1 || "";
@@ -1816,6 +2085,7 @@ function setPhysicianRecord(slot, values) {
   record.state = values.state || "";
   record.zipCode = values.zipCode || "";
   record.phoneNumber = values.phoneNumber || values.phone || "";
+  record.faxNumber = values.faxNumber || values.fax || "";
   record.locationId = values.locationId || record.locationId || "";
   if (Array.isArray(values.locations)) {
     record.locations = values.locations.map((location) => ({ ...location }));
@@ -1849,6 +2119,7 @@ function renderSelectedPhysicianField(physicianRecord) {
         ${physicianRecord.address1 ? `<p class="physician-selected-card__meta">${physicianRecord.address1}</p>` : ""}
         ${physicianRecord.address2 ? `<p class="physician-selected-card__meta">${physicianRecord.address2}</p>` : ""}
         ${(physicianRecord.city || physicianRecord.state || physicianRecord.zipCode) ? `<p class="physician-selected-card__meta">${formatCityStateZip(physicianRecord.city, physicianRecord.state, physicianRecord.zipCode)}</p>` : ""}
+        ${physicianRecord.faxNumber ? `<p class="physician-selected-card__meta">Fax: ${physicianRecord.faxNumber}</p>` : ""}
       </div>
     </div>
   `;
