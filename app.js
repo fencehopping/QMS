@@ -118,6 +118,7 @@ const profileState = {
   insurance: {
     primaryPayer: "United Healthcare",
     providerAccountNumber: "1EG4-TE5-MK73",
+    manualEntry: false,
     description: "Aetna Medicare Choice (HMO - POS)",
     insuranceType: "Point of Service (POS)",
     coordination: "02/01/2020 - Current",
@@ -824,6 +825,7 @@ function renderFitterSortIcon(field) {
 
 function renderProfile() {
   const canContinueToProductSelection = isProfileReadyForProductSelection();
+  const hasManualInsuranceEntry = Boolean(profileState.insurance.manualEntry);
   return `
     <div class="intake-layout">
       <div class="stack intake-main">
@@ -842,11 +844,12 @@ function renderProfile() {
                 <div class="intake-data-list">
                   ${profileField("Primary Payer", profileState.insurance.primaryPayer)}
                   ${profileField("Provider Account Number", profileState.insurance.providerAccountNumber, true)}
-                  ${profileField("Description", profileState.insurance.description)}
-                  ${profileField("Insurance Type", profileState.insurance.insuranceType, true)}
-                  ${profileField("Coordination of Benefits", profileState.insurance.coordination)}
+                  ${hasManualInsuranceEntry ? "" : profileField("Description", profileState.insurance.description)}
+                  ${hasManualInsuranceEntry ? "" : profileField("Insurance Type", profileState.insurance.insuranceType, true)}
+                  ${hasManualInsuranceEntry ? "" : profileField("Coordination of Benefits", profileState.insurance.coordination)}
                 </div>
               </article>
+              ${hasManualInsuranceEntry ? "" : `
               <article class="card intake-data-card">
                 <div class="surface-card__header">Plan Details</div>
                 <div class="intake-data-list">
@@ -856,6 +859,7 @@ function renderProfile() {
                   ${profilePairField("Co-Pay", profileState.insurance.coPayIn, profileState.insurance.coPayOut, true)}
                 </div>
               </article>
+              `}
             </div>
           </div>
 
@@ -1211,8 +1215,11 @@ function renderPhysicianCard(title, physician, slot) {
 function isProfileReadyForProductSelection() {
   const hasPrimaryInsurance = Boolean(
     profileState.insurance.primaryPayer
-    && profileState.insurance.description
-    && profileState.insurance.insuranceType,
+    && (
+      profileState.insurance.manualEntry
+        ? profileState.insurance.providerAccountNumber
+        : (profileState.insurance.description && profileState.insurance.insuranceType)
+    ),
   );
   const hasBillingAddress = Boolean(
     profileState.addresses.billingStreet
@@ -1620,7 +1627,11 @@ function applyModalChanges(target, formData) {
       Object.assign(profileState.personal, values);
       break;
     case "insurance":
-      profileState.insurance.primaryPayer = resolveInsuranceProviderName(values.primaryPayer) || String(values.primaryPayer || "").trim();
+      {
+        const resolvedProvider = resolveInsuranceProviderName(values.primaryPayer);
+        profileState.insurance.manualEntry = insuranceEditState.manualEntry || !resolvedProvider;
+        profileState.insurance.primaryPayer = resolvedProvider || String(values.primaryPayer || "").trim();
+      }
       profileState.insurance.providerAccountNumber = String(values.providerAccountNumber || "").trim();
       break;
     case "billing-address":
@@ -1669,6 +1680,7 @@ function handleOnboardingModalSubmit(formData) {
 
     onboardingState.error = "";
     onboardingState.medicareNumber = medicareNumber;
+    profileState.insurance.manualEntry = false;
     profileState.insurance.primaryPayer = "Medicare";
     profileState.insurance.providerAccountNumber = medicareNumber;
     startOnboardingProcessing();
@@ -1681,7 +1693,11 @@ function handleOnboardingModalSubmit(formData) {
       return true;
     }
 
-    profileState.insurance.primaryPayer = resolveInsuranceProviderName(values.primaryPayer) || String(values.primaryPayer || "").trim();
+    {
+      const resolvedProvider = resolveInsuranceProviderName(values.primaryPayer);
+      profileState.insurance.manualEntry = !resolvedProvider;
+      profileState.insurance.primaryPayer = resolvedProvider || String(values.primaryPayer || "").trim();
+    }
     profileState.insurance.providerAccountNumber = String(values.policyNumber || "").trim();
     startOnboardingProcessing();
     return true;
