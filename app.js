@@ -474,16 +474,18 @@ function initNav() {
     if (onboardingChoiceTrigger instanceof HTMLElement) {
       const choice = onboardingChoiceTrigger.dataset.onboardingChoice;
       onboardingState.error = "";
-      if (choice === "yes") {
+      if (choice === "medicare") {
         onboardingState.medicareNumber = profileState.insurance.primaryPayer === "Medicare"
           ? profileState.insurance.providerAccountNumber
           : onboardingState.medicareNumber;
         openModal("onboarding-medicare-number");
-      } else if (choice === "no") {
+      } else if (choice === "private") {
         initializeInsuranceEditState(profileState.insurance.primaryPayer === "Medicare" ? "" : profileState.insurance.primaryPayer);
         insuranceEditState.manualEntry = false;
         insuranceEditState.isSuggestionOpen = true;
         openModal("onboarding-insurance");
+      } else if (choice === "cash") {
+        window.location.href = "https://shop.quantummedicalsupply.com";
       }
       return;
     }
@@ -1475,7 +1477,7 @@ function modalConfig(target) {
       };
     case "onboarding-medicare-question":
       return {
-        title: "Do you have medicare?",
+        title: "What is your primary insurance?",
         variant: "onboarding",
         body: renderOnboardingMedicareQuestionStep(),
       };
@@ -1769,10 +1771,11 @@ function renderOnboardingWelcomeStep() {
 function renderOnboardingMedicareQuestionStep() {
   return renderOnboardingShell(`
     <div class="onboarding-modal__content onboarding-modal__content--question">
-      <h2 class="onboarding-modal__headline">Do you have medicare?</h2>
+      <h2 class="onboarding-modal__headline">What is your primary insurance?</h2>
       <div class="onboarding-modal__binary-actions">
-        <button class="onboarding-modal__choice onboarding-modal__choice--light" data-onboarding-choice="no" type="button">No</button>
-        <button class="onboarding-modal__choice onboarding-modal__choice--dark" data-onboarding-choice="yes" type="button">Yes</button>
+        <button class="onboarding-modal__choice onboarding-modal__choice--dark" data-onboarding-choice="medicare" type="button">Medicare</button>
+        <button class="onboarding-modal__choice onboarding-modal__choice--light" data-onboarding-choice="private" type="button">Private Insurance</button>
+        <button class="onboarding-modal__choice onboarding-modal__choice--light" data-onboarding-choice="cash" type="button">Cash</button>
       </div>
     </div>
   `, "onboarding-modal--question");

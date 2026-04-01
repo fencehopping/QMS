@@ -668,6 +668,11 @@ button {
   padding-top: 56px;
 }
 
+.onboarding-modal--question .onboarding-modal__content {
+  padding-top: 76px;
+  padding-bottom: 72px;
+}
+
 .onboarding-modal__message-stack {
   display: grid;
   gap: 6px;
@@ -743,6 +748,14 @@ button {
   align-items: center;
   justify-content: center;
   gap: 26px;
+}
+
+.onboarding-modal--question .onboarding-modal__headline {
+  margin-bottom: 22px;
+}
+
+.onboarding-modal--question .onboarding-modal__binary-actions {
+  gap: 34px;
 }
 
 .onboarding-modal__choice {
