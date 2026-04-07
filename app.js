@@ -17,6 +17,12 @@ const patientRoutes = {
     footer: "Profile",
     subtitle: "Review insurance, confirm billing details, and connect the physician information needed to start your order.",
   },
+  "profile-api-test": {
+    label: "View Profile API test",
+    title: "View Profile API test",
+    footer: "View Profile API test",
+    subtitle: "Preview the full Softgait PatientDetails payload and confirm which fields are currently documented for integration.",
+  },
   aob: {
     label: "AOB Form",
     title: "Assignment of Benefits",
@@ -161,6 +167,85 @@ const profileState = {
   },
 };
 
+const softgaitPatientApiPreview = {
+  patient: {
+    personId: 612730,
+    patientId: 176616,
+    firstName: "Melissa",
+    lastName: "South",
+    dateofBirth: "1979-03-18T00:00:00",
+    gender: "Female",
+    phone: null,
+    cellPhone: "",
+    email: "Lyssa301979@gmail.com",
+    communicationPreference: null,
+    portalUsername: null,
+    hipaaConsent: null,
+    aob: null,
+    fitterinarea: "STEVE NOACK",
+  },
+  insurances: [
+    {
+      name: "Blue Cross Blue Shield",
+      type: "Primary",
+      phone: "800-555-0100",
+      policy: "XYZ123456",
+      status: "Active",
+      rank: "true",
+    },
+  ],
+  physicians: [
+    {
+      name: "SHU GUANG XU",
+      phone: "4848843333",
+      fax: "",
+      address: "50 MOISEY DRIVE",
+      city: "HAZLETON",
+      state: "PA",
+      zip: "18202",
+      npi: "1285684324",
+      taxonomyCode: "2084N0402X",
+      credentials: "MD",
+      specialty: "Psychiatry & Neurology, Neurology with Special Qualifications in Child Neurology",
+    },
+  ],
+  invoices: [
+    {
+      invoiceNumber: "INV-001234",
+      status: "Pending",
+      amount: 150.0,
+      striplink: "https://pay.stripe.com/...",
+      description: "Monthly Supply",
+    },
+  ],
+  caregiver: {
+    firstName: "John",
+    lastName: "Smith",
+    phone: "555-123-4567",
+    email: "john.smith@email.com",
+    relationship: "Spouse",
+  },
+  addresses: {
+    addressLine1: "123 Main St",
+    addressLine2: "Apt 4B",
+    city: "Atlanta",
+    state: "GA",
+    zipCode: "30301",
+    type: "Home",
+    isPrimary: true,
+    TemporaryAddress: {
+      Address: "TEST",
+      Address2: "test2",
+      City: "Test",
+      State: "FL",
+      Zip: "12345",
+      AddressType: "Temporary",
+      From: "",
+      To: "",
+    },
+  },
+};
+
 const insuranceProviderState = {
   items: [],
   loaded: false,
@@ -204,6 +289,7 @@ const iconMap = {
   home: homeIcon(),
   "browse-shoes": shoeIcon(),
   profile: fontAwesomeIcon("fa-user"),
+  "profile-api-test": fontAwesomeIcon("fa-vial"),
   aob: documentIcon(),
   orders: fontAwesomeIcon("fa-cart-shopping"),
   records: orderIcon(),
@@ -217,12 +303,13 @@ const views = {
   home: renderHome,
   "browse-shoes": renderBrowseShoes,
   profile: renderProfile,
+  "profile-api-test": renderProfileApiTest,
   aob: renderAob,
   orders: renderOrders,
   records: renderPlaceholder,
   invoices: renderPlaceholder,
-  support: renderPlaceholder,
-  security: renderPlaceholder,
+  support: renderSupport,
+  security: renderSecurity,
   signout: renderPlaceholder,
 };
 
@@ -954,6 +1041,28 @@ function renderProfile() {
   `;
 }
 
+function renderProfileApiTest() {
+  return `
+    <div class="stack">
+      <section class="card surface-card patient-api-card">
+        <div class="surface-card__header patient-api-card__header">
+          <div>
+            <p class="patient-api-card__eyebrow">Softgait PatientDetails API</p>
+            <h2>Available patient data</h2>
+          </div>
+          <span class="patient-api-card__badge patient-api-card__badge--muted">No order status endpoint documented</span>
+        </div>
+        <div class="patient-api-card__content">
+          <p class="patient-api-card__summary">The published API currently exposes patient demographics, insurances, physicians, invoices, caregiver details, and addresses. It does not document any dedicated order, shipment, fulfillment, or workflow status resource.</p>
+          <div class="patient-api-grid">
+            ${renderSoftgaitApiPreview()}
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
 function renderBrowseShoes() {
   const sectionLinks = catalogSections
     .map((section) => `<a class="browse-chip" href="#catalog-${section.id}">${section.title}</a>`)
@@ -1115,6 +1224,64 @@ function renderOrders() {
             </div>
           </article>
         </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderSupport() {
+  return `
+    <div class="stack">
+      <section class="card surface-card">
+        <div class="card__body">
+          <h2 class="card__title">Support Numbers &amp; Links</h2>
+          <div class="stack" style="gap: 18px; margin-top: 20px;">
+            <p class="card__copy">Quantum Medical Shoes and Compression Line: <a href="tel:18007046515">1-800-704-6515</a></p>
+            <p class="card__copy">Quantum Medical CGM Line: <a href="tel:18778170437">1-877-817-0437</a></p>
+            <p class="card__copy">Abbott Libre Tech Support: <a href="tel:18556328658">1-855-632-8658</a></p>
+            <p class="card__copy">Dexcom Tech Support: <a href="tel:18446078398">1-844-607-8398</a></p>
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderSecurity() {
+  return `
+    <div class="stack">
+      <section class="security-grid">
+        <article class="card surface-card security-card">
+          <div class="surface-card__header security-card__header">Username</div>
+          <div class="surface-card__content">
+            <div class="detail-item security-card__detail">
+              <span class="detail-item__icon security-card__icon" aria-hidden="true">${profileIcon()}</span>
+              <div>
+                <span class="detail-item__label security-card__label">Current Username</span>
+                <span class="detail-item__value security-card__value">QMSSARIAH79884</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-actions security-card__actions">
+            <button class="pill-button security-card__button" type="button">Change Username</button>
+          </div>
+        </article>
+
+        <article class="card surface-card security-card">
+          <div class="surface-card__header security-card__header">Password</div>
+          <div class="surface-card__content">
+            <div class="detail-item security-card__detail">
+              <span class="detail-item__icon security-card__icon" aria-hidden="true">${securityIcon()}</span>
+              <div>
+                <span class="detail-item__label security-card__label">Current Password</span>
+                <span class="detail-item__value security-card__value">************</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-actions security-card__actions">
+            <button class="pill-button security-card__button" type="button">Change Password</button>
+          </div>
+        </article>
       </section>
     </div>
   `;
@@ -1298,6 +1465,108 @@ function profileField(label, value, striped = false) {
   `;
 }
 
+function renderSoftgaitApiPreview() {
+  return [
+    renderSoftgaitSection("Patient", [
+      ["Person ID", softgaitPatientApiPreview.patient.personId],
+      ["Patient ID", softgaitPatientApiPreview.patient.patientId],
+      ["First Name", softgaitPatientApiPreview.patient.firstName],
+      ["Last Name", softgaitPatientApiPreview.patient.lastName],
+      ["Date of Birth", formatSoftgaitDate(softgaitPatientApiPreview.patient.dateofBirth)],
+      ["Gender", softgaitPatientApiPreview.patient.gender],
+      ["Phone", softgaitPatientApiPreview.patient.phone],
+      ["Cell Phone", softgaitPatientApiPreview.patient.cellPhone],
+      ["Email", softgaitPatientApiPreview.patient.email],
+      ["Communication Preference", softgaitPatientApiPreview.patient.communicationPreference],
+      ["Portal Username", softgaitPatientApiPreview.patient.portalUsername],
+      ["HIPAA Consent", softgaitPatientApiPreview.patient.hipaaConsent],
+      ["AOB", softgaitPatientApiPreview.patient.aob],
+      ["Fitter in Area", softgaitPatientApiPreview.patient.fitterinarea],
+    ]),
+    softgaitPatientApiPreview.insurances.map((insurance, index) => renderSoftgaitSection(`Insurance ${index + 1}`, [
+      ["Name", insurance.name],
+      ["Type", insurance.type],
+      ["Phone", insurance.phone],
+      ["Policy", insurance.policy],
+      ["Status", insurance.status],
+      ["Primary Rank", insurance.rank === "true" ? "Primary" : insurance.rank],
+    ])).join(""),
+    softgaitPatientApiPreview.physicians.map((physician, index) => renderSoftgaitSection(`Physician ${index + 1}`, [
+      ["Name", physician.name],
+      ["Phone", physician.phone],
+      ["Fax", physician.fax],
+      ["Address", physician.address],
+      ["City / State / Zip", formatCityStateZip(physician.city, physician.state, physician.zip)],
+      ["NPI", physician.npi],
+      ["Taxonomy Code", physician.taxonomyCode],
+      ["Credentials", physician.credentials],
+      ["Specialty", physician.specialty],
+    ])).join(""),
+    softgaitPatientApiPreview.invoices.map((invoice, index) => renderSoftgaitSection(`Invoice ${index + 1}`, [
+      ["Invoice Number", invoice.invoiceNumber],
+      ["Status", invoice.status],
+      ["Amount", formatSoftgaitCurrency(invoice.amount)],
+      ["Stripe Link", invoice.striplink],
+      ["Description", invoice.description],
+    ])).join(""),
+    renderSoftgaitSection("Caregiver", [
+      ["First Name", softgaitPatientApiPreview.caregiver.firstName],
+      ["Last Name", softgaitPatientApiPreview.caregiver.lastName],
+      ["Phone", softgaitPatientApiPreview.caregiver.phone],
+      ["Email", softgaitPatientApiPreview.caregiver.email],
+      ["Relationship", softgaitPatientApiPreview.caregiver.relationship],
+    ]),
+    renderSoftgaitSection("Address", [
+      ["Address Line 1", softgaitPatientApiPreview.addresses.addressLine1],
+      ["Address Line 2", softgaitPatientApiPreview.addresses.addressLine2],
+      ["City", softgaitPatientApiPreview.addresses.city],
+      ["State", softgaitPatientApiPreview.addresses.state],
+      ["Zip Code", softgaitPatientApiPreview.addresses.zipCode],
+      ["Type", softgaitPatientApiPreview.addresses.type],
+      ["Is Primary", softgaitPatientApiPreview.addresses.isPrimary ? "Yes" : "No"],
+      ["Temporary Address", formatSoftgaitTemporaryAddress(softgaitPatientApiPreview.addresses.TemporaryAddress)],
+    ]),
+  ].join("");
+}
+
+function renderSoftgaitSection(title, fields) {
+  return `
+    <article class="card intake-data-card patient-api-section">
+      <div class="surface-card__header">${title}</div>
+      <div class="intake-data-list">
+        ${fields.map(([label, value], index) => profileField(label, formatSoftgaitValue(value), index % 2 === 1)).join("")}
+      </div>
+    </article>
+  `;
+}
+
+function formatSoftgaitValue(value) {
+  if (value === null || value === undefined || value === "") return '<span class="patient-api-empty">Not provided</span>';
+  return String(value);
+}
+
+function formatSoftgaitDate(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function formatSoftgaitCurrency(value) {
+  if (value === null || value === undefined || value === "") return "";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(value));
+}
+
+function formatSoftgaitTemporaryAddress(address) {
+  if (!address) return "";
+  return [
+    [address.Address, address.Address2].filter(Boolean).join(" "),
+    [address.City, address.State].filter(Boolean).join(", "),
+    address.Zip,
+    address.AddressType,
+  ].filter(Boolean).join(" • ");
+}
+
 function profilePairField(label, left, right, striped = false) {
   return `
     <div class="intake-row${striped ? " is-striped" : ""}">
@@ -1418,7 +1687,7 @@ function getRoutes() {
 function getPortalNavRoutes() {
   return currentPortal === "fitter"
     ? ["home", "signout"]
-    : ["profile", "orders", "support", "security", "signout"];
+    : ["profile", "profile-api-test", "orders", "support", "security", "signout"];
 }
 
 function getDefaultRoute() {
@@ -2668,6 +2937,10 @@ function fontAwesomeIcon(iconClassName) {
 
 function profileIcon() {
   return `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1.5 3.5h13v9h-13v-9Zm1 1v7h11v-7h-11Zm5.5.8a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm0 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2ZM4.2 11c.6-1.4 2-2.2 3.8-2.2 1.8 0 3.2.8 3.8 2.2h-1.2c-.5-.8-1.4-1.2-2.6-1.2s-2.1.4-2.6 1.2H4.2Z" fill="currentColor"/></svg>`;
+}
+
+function securityIcon() {
+  return `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6.2 7.1a2.2 2.2 0 1 1 1.9-3.4h3.7v1H9.3v1h-1V4.8H8a2.2 2.2 0 0 1-1.8 2.3Zm0-1a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4ZM2.3 7.8h11.5v1H2.3v-1Zm0 2.7h11.5v1H2.3v-1Z" fill="currentColor"/></svg>`;
 }
 
 function documentIcon() {

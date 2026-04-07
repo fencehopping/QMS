@@ -2041,6 +2041,75 @@ button {
   padding: 22px 20px 14px;
 }
 
+.patient-api-card {
+  overflow: hidden;
+}
+
+.patient-api-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.patient-api-card__header h2 {
+  margin: 6px 0 0;
+  color: #103e52;
+  font-size: 1.2rem;
+}
+
+.patient-api-card__eyebrow {
+  margin: 0;
+  color: #5a83b4;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.patient-api-card__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.patient-api-card__badge--muted {
+  background: rgba(16, 62, 82, 0.08);
+  color: #37566d;
+}
+
+.patient-api-card__content {
+  padding: 20px;
+}
+
+.patient-api-card__summary {
+  margin: 0 0 18px;
+  max-width: 900px;
+  color: #5e7085;
+  font-size: 0.96rem;
+  line-height: 1.6;
+}
+
+.patient-api-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.patient-api-section {
+  overflow: hidden;
+}
+
+.patient-api-empty {
+  color: #8d9cad;
+  font-style: italic;
+}
+
 .detail-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2080,6 +2149,79 @@ button {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
+}
+
+.security-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.security-card {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(220, 229, 241, 0.92);
+  box-shadow: 0 10px 28px rgba(24, 44, 73, 0.08);
+}
+
+.security-card__header {
+  padding: 22px 26px 20px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #0f2236;
+}
+
+.security-card .surface-card__content {
+  min-height: 170px;
+  display: flex;
+  align-items: center;
+  padding: 28px 30px 34px;
+}
+
+.security-card__detail {
+  gap: 16px;
+}
+
+.security-card__icon {
+  width: 22px;
+  height: 22px;
+  color: #78a3ea;
+}
+
+.security-card__label {
+  margin-bottom: 8px;
+  color: #78a3ea;
+  font-size: 0.86rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.security-card__value {
+  color: #102438;
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+
+.security-card__actions {
+  display: flex;
+  justify-content: center;
+  padding: 22px 20px;
+  border-top: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(245, 247, 251, 0.92), rgba(255, 255, 255, 0.95));
+}
+
+.security-card__button {
+  min-height: 52px;
+  padding: 0 30px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #6e99dd 0%, #5e88cf 100%);
+  box-shadow: none;
+  font-size: 0.92rem;
+}
+
+.security-card__button:hover {
+  background: linear-gradient(180deg, #648fd4 0%, #547dc4 100%);
 }
 
 .table-card {
@@ -2605,6 +2747,7 @@ button {
   }
 
   .profile-grid,
+  .security-grid,
   .product-grid {
     grid-template-columns: 1fr;
     max-width: none;
@@ -3078,6 +3221,19 @@ button {
 
   .orders-product-card {
     grid-template-columns: 1fr;
+  }
+
+  .patient-api-card__header,
+  .patient-api-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .patient-api-card__header {
+    display: grid;
+  }
+
+  .patient-api-card__badge {
+    white-space: normal;
   }
 
   .orders-qualify-grid,
