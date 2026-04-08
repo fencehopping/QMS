@@ -167,83 +167,28 @@ const profileState = {
   },
 };
 
-const softgaitPatientApiPreview = {
-  patient: {
-    personId: 612730,
-    patientId: 176616,
-    firstName: "Melissa",
-    lastName: "South",
-    dateofBirth: "1979-03-18T00:00:00",
-    gender: "Female",
-    phone: null,
-    cellPhone: "",
-    email: "Lyssa301979@gmail.com",
-    communicationPreference: null,
-    portalUsername: null,
-    hipaaConsent: null,
-    aob: null,
-    fitterinarea: "STEVE NOACK",
+const softgaitFixedPatientId = "571595";
+
+const softgaitApiState = {
+  form: {
+    personId: softgaitFixedPatientId,
+    username: "",
+    password: "",
+    token: "",
   },
-  insurances: [
-    {
-      name: "Blue Cross Blue Shield",
-      type: "Primary",
-      phone: "800-555-0100",
-      policy: "XYZ123456",
-      status: "Active",
-      rank: "true",
-    },
-  ],
-  physicians: [
-    {
-      name: "SHU GUANG XU",
-      phone: "4848843333",
-      fax: "",
-      address: "50 MOISEY DRIVE",
-      city: "HAZLETON",
-      state: "PA",
-      zip: "18202",
-      npi: "1285684324",
-      taxonomyCode: "2084N0402X",
-      credentials: "MD",
-      specialty: "Psychiatry & Neurology, Neurology with Special Qualifications in Child Neurology",
-    },
-  ],
-  invoices: [
-    {
-      invoiceNumber: "INV-001234",
-      status: "Pending",
-      amount: 150.0,
-      striplink: "https://pay.stripe.com/...",
-      description: "Monthly Supply",
-    },
-  ],
-  caregiver: {
-    firstName: "John",
-    lastName: "Smith",
-    phone: "555-123-4567",
-    email: "john.smith@email.com",
-    relationship: "Spouse",
+  config: {
+    loaded: false,
+    error: "",
+    baseUrl: "https://sandbox.softgait.com",
+    hasEnvBearerToken: false,
+    hasEnvCredentials: false,
+    hasDefaultSandboxCredentials: false,
+    defaultUsername: "",
   },
-  addresses: {
-    addressLine1: "123 Main St",
-    addressLine2: "Apt 4B",
-    city: "Atlanta",
-    state: "GA",
-    zipCode: "30301",
-    type: "Home",
-    isPrimary: true,
-    TemporaryAddress: {
-      Address: "TEST",
-      Address2: "test2",
-      City: "Test",
-      State: "FL",
-      Zip: "12345",
-      AddressType: "Temporary",
-      From: "",
-      To: "",
-    },
-  },
+  loading: false,
+  error: "",
+  response: null,
+  autoAttempted: false,
 };
 
 const insuranceProviderState = {
@@ -433,6 +378,7 @@ const fitterColumns = [
 
 initNav();
 void loadInsuranceProviders();
+void loadSoftgaitConfig();
 syncRoute();
 maybeLaunchOnboardingFlow();
 window.addEventListener("hashchange", syncRoute);
@@ -518,6 +464,17 @@ function initNav() {
     insuranceEditState.error = "";
     insuranceEditState.isSuggestionOpen = true;
     refreshInsuranceAutocompleteUi();
+  });
+
+  document.addEventListener("input", (event) => {
+    if (
+      !(event.target instanceof HTMLInputElement)
+      && !(event.target instanceof HTMLTextAreaElement)
+    ) return;
+    if (!event.target.matches("[data-softgait-field]")) return;
+    const field = event.target.dataset.softgaitField;
+    if (!field || !(field in softgaitApiState.form)) return;
+    softgaitApiState.form[field] = event.target.value;
   });
 
   document.addEventListener("focusin", (event) => {
@@ -697,9 +654,25 @@ function initNav() {
       openModal("insurance");
       return;
     }
+    const softgaitResetTrigger = event.target.closest("[data-softgait-reset]");
+    if (softgaitResetTrigger) {
+      softgaitApiState.error = "";
+      softgaitApiState.response = null;
+      softgaitApiState.form.password = "";
+      softgaitApiState.autoAttempted = true;
+      rerenderCurrentRoute();
+      return;
+    }
     const trigger = event.target.closest("[data-edit-target]");
     if (!(trigger instanceof HTMLElement)) return;
     openModal(trigger.dataset.editTarget || "");
+  });
+
+  document.addEventListener("submit", (event) => {
+    if (!(event.target instanceof HTMLFormElement)) return;
+    if (!event.target.matches("[data-softgait-form]")) return;
+    event.preventDefault();
+    void fetchSoftgaitPatientSummary();
   });
 
   modalForm.addEventListener("submit", (event) => {
@@ -742,6 +715,7 @@ function syncRoute() {
     button.classList.toggle("is-active", button.dataset.mobileRoute === routeKey);
   });
   closeSidebar();
+  maybeAutoLoadSoftgaitPatient();
 }
 
 function maybeLaunchOnboardingFlow() {
@@ -1042,25 +1016,355 @@ function renderProfile() {
 }
 
 function renderProfileApiTest() {
+  const lookupStateLabel = softgaitApiState.loading
+    ? "Fetching live data"
+    : softgaitApiState.response
+      ? "Live response"
+      : softgaitApiState.autoAttempted
+        ? "Auto-load attempted"
+        : "Auto-loading on open";
+
   return `
     <div class="stack">
       <section class="card surface-card patient-api-card">
         <div class="surface-card__header patient-api-card__header">
           <div>
             <p class="patient-api-card__eyebrow">Softgait PatientDetails API</p>
-            <h2>Available patient data</h2>
+            <h2>Fixed patient lookup</h2>
+          </div>
+          <span class="patient-api-card__badge patient-api-card__badge--muted">${lookupStateLabel}</span>
+        </div>
+        <div class="patient-api-card__content">
+          <p class="patient-api-card__summary">This API test page now loads a single fixed patient on open. It no longer exposes any manual patient search or auth controls in the UI.</p>
+          ${renderSoftgaitConfigSummary()}
+          <div class="patient-api-meta-row">
+            ${renderSoftgaitMetaPill(`Patient ID: ${softgaitFixedPatientId}`)}
+            ${renderSoftgaitMetaPill("Mode: Fixed API test record")}
+          </div>
+          ${softgaitApiState.error ? `<p class="patient-api-feedback patient-api-feedback--error">${escapeHtml(softgaitApiState.error)}</p>` : ""}
+        </div>
+      </section>
+
+      <section class="card surface-card patient-api-card">
+        <div class="surface-card__header patient-api-card__header">
+          <div>
+            <p class="patient-api-card__eyebrow">Live response</p>
+            <h2>Patient details payload</h2>
           </div>
           <span class="patient-api-card__badge patient-api-card__badge--muted">No order status endpoint documented</span>
         </div>
         <div class="patient-api-card__content">
-          <p class="patient-api-card__summary">The published API currently exposes patient demographics, insurances, physicians, invoices, caregiver details, and addresses. It does not document any dedicated order, shipment, fulfillment, or workflow status resource.</p>
-          <div class="patient-api-grid">
-            ${renderSoftgaitApiPreview()}
-          </div>
+          ${renderSoftgaitApiResults()}
         </div>
       </section>
     </div>
   `;
+}
+
+function renderSoftgaitConfigSummary() {
+  if (!softgaitApiState.config.loaded) {
+    return '<p class="patient-api-feedback">Checking local Softgait proxy configuration...</p>';
+  }
+
+  if (softgaitApiState.config.error) {
+    return `<p class="patient-api-feedback patient-api-feedback--error">${escapeHtml(softgaitApiState.config.error)}</p>`;
+  }
+
+  const configPills = [
+    renderSoftgaitMetaPill(`Base URL: ${softgaitApiState.config.baseUrl}`),
+    renderSoftgaitMetaPill(softgaitApiState.config.hasEnvBearerToken ? "Server bearer token configured" : "No server bearer token"),
+    renderSoftgaitMetaPill(softgaitApiState.config.hasEnvCredentials ? "Server login credentials configured" : "No server login credentials"),
+    renderSoftgaitMetaPill(
+      softgaitApiState.config.hasDefaultSandboxCredentials
+        ? `Default sandbox login ready (${softgaitApiState.config.defaultUsername || "configured"})`
+        : "No default sandbox login",
+    ),
+  ].join("");
+
+  return `<div class="patient-api-meta-row">${configPills}</div>`;
+}
+
+function renderSoftgaitApiResults() {
+  if (softgaitApiState.loading && !softgaitApiState.response) {
+    return '<div class="patient-api-empty-state"><p>Fetching patient details from Softgait...</p></div>';
+  }
+
+  if (!softgaitApiState.response) {
+    return '<div class="patient-api-empty-state"><p>Run a lookup to load patient, insurance, physician, invoice, caregiver, and address data from Softgait.</p></div>';
+  }
+
+  const { auth = {}, sections = {}, statusSignals = {} } = softgaitApiState.response;
+  const metaPills = [
+    renderSoftgaitMetaPill(`Auth: ${describeSoftgaitAuthMode(auth.mode)}`),
+    auth.username ? renderSoftgaitMetaPill(`User: ${auth.username}`) : "",
+    auth.expiry ? renderSoftgaitMetaPill(`Token Expiry: ${formatSoftgaitDateTime(auth.expiry)}`) : "",
+    statusSignals.insuranceStatuses?.length ? renderSoftgaitMetaPill(`Insurance Statuses: ${statusSignals.insuranceStatuses.join(", ")}`) : "",
+    statusSignals.invoiceStatuses?.length ? renderSoftgaitMetaPill(`Invoice Statuses: ${statusSignals.invoiceStatuses.join(", ")}`) : "",
+  ].filter(Boolean).join("");
+
+  return `
+    <p class="patient-api-card__summary">The current documentation still exposes status-like fields only on insurances and invoices. There is still no dedicated order or shipment status resource in this integration.</p>
+    <div class="patient-api-meta-row">${metaPills}</div>
+    <div class="patient-api-grid">
+      ${renderSoftgaitPatientSection(sections.patient)}
+      ${renderSoftgaitAddressSection(sections.addresses)}
+      ${renderSoftgaitCaregiverSection(sections.caregiver)}
+      ${renderSoftgaitInsuranceSection(sections.insurances)}
+      ${renderSoftgaitPhysicianSection(sections.physicians)}
+      ${renderSoftgaitInvoiceSection(sections.invoices)}
+    </div>
+  `;
+}
+
+function renderSoftgaitPatientSection(wrapper) {
+  if (!wrapper?.success || !wrapper.data) {
+    return renderSoftgaitSectionCard("Patient", wrapper);
+  }
+
+  return renderSoftgaitSectionCard(
+    "Patient",
+    wrapper,
+    renderSoftgaitRecord("", [
+      ["Person ID", formatSoftgaitText(wrapper.data.personId)],
+      ["Patient ID", formatSoftgaitText(wrapper.data.patientId)],
+      ["First Name", formatSoftgaitText(wrapper.data.firstName)],
+      ["Last Name", formatSoftgaitText(wrapper.data.lastName)],
+      ["Date of Birth", formatSoftgaitDate(wrapper.data.dateofBirth)],
+      ["Gender", formatSoftgaitText(wrapper.data.gender)],
+      ["Phone", formatSoftgaitText(wrapper.data.phone)],
+      ["Cell Phone", formatSoftgaitText(wrapper.data.cellPhone)],
+      ["Email", formatSoftgaitText(wrapper.data.email)],
+      ["Communication Preference", formatSoftgaitText(wrapper.data.communicationPreference)],
+      ["Portal Username", formatSoftgaitText(wrapper.data.portalUsername)],
+      ["HIPAA Consent", formatSoftgaitText(wrapper.data.hipaaConsent)],
+      ["AOB", formatSoftgaitText(wrapper.data.aob)],
+      ["Fitter in Area", formatSoftgaitText(wrapper.data.fitterinarea)],
+    ]),
+  );
+}
+
+function renderSoftgaitInsuranceSection(wrapper) {
+  if (!wrapper?.success || !Array.isArray(wrapper.data) || !wrapper.data.length) {
+    return renderSoftgaitSectionCard("Insurances", wrapper);
+  }
+
+  return renderSoftgaitSectionCard(
+    "Insurances",
+    wrapper,
+    wrapper.data
+      .map((insurance, index) => renderSoftgaitRecord(`Insurance ${index + 1}`, [
+        ["Name", formatSoftgaitText(insurance.name)],
+        ["Type", formatSoftgaitText(insurance.type)],
+        ["Phone", formatSoftgaitText(insurance.phone)],
+        ["Policy", formatSoftgaitText(insurance.policy)],
+        ["Status", formatSoftgaitText(insurance.status)],
+        ["Primary Rank", formatSoftgaitRank(insurance.rank)],
+      ]))
+      .join(""),
+  );
+}
+
+function renderSoftgaitPhysicianSection(wrapper) {
+  if (!wrapper?.success || !Array.isArray(wrapper.data) || !wrapper.data.length) {
+    return renderSoftgaitSectionCard("Physicians", wrapper);
+  }
+
+  return renderSoftgaitSectionCard(
+    "Physicians",
+    wrapper,
+    wrapper.data
+      .map((physician, index) => renderSoftgaitRecord(`Physician ${index + 1}`, [
+        ["Name", formatSoftgaitText(physician.name)],
+        ["Phone", formatSoftgaitText(physician.phone)],
+        ["Fax", formatSoftgaitText(physician.fax)],
+        ["Address", formatSoftgaitText(physician.address)],
+        ["City", formatSoftgaitText(physician.city)],
+        ["State", formatSoftgaitText(physician.state)],
+        ["Zip", formatSoftgaitText(physician.zip)],
+        ["NPI", formatSoftgaitText(physician.npi)],
+        ["Taxonomy Code", formatSoftgaitText(physician.taxonomyCode)],
+        ["Credentials", formatSoftgaitText(physician.credentials)],
+        ["Specialty", formatSoftgaitText(physician.specialty)],
+      ]))
+      .join(""),
+  );
+}
+
+function renderSoftgaitInvoiceSection(wrapper) {
+  if (!wrapper?.success || !Array.isArray(wrapper.data) || !wrapper.data.length) {
+    return renderSoftgaitSectionCard("Invoices", wrapper);
+  }
+
+  return renderSoftgaitSectionCard(
+    "Invoices",
+    wrapper,
+    wrapper.data
+      .map((invoice, index) => renderSoftgaitRecord(`Invoice ${index + 1}`, [
+        ["Invoice Number", formatSoftgaitText(invoice.invoiceNumber)],
+        ["Status", formatSoftgaitText(invoice.status)],
+        ["Amount", formatSoftgaitCurrency(invoice.amount)],
+        ["Stripe Link", formatSoftgaitLink(invoice.striplink)],
+        ["Description", formatSoftgaitText(invoice.description)],
+      ]))
+      .join(""),
+  );
+}
+
+function renderSoftgaitCaregiverSection(wrapper) {
+  if (!wrapper?.success || !wrapper.data) {
+    return renderSoftgaitSectionCard("Caregiver", wrapper);
+  }
+
+  return renderSoftgaitSectionCard(
+    "Caregiver",
+    wrapper,
+    renderSoftgaitRecord("", [
+      ["First Name", formatSoftgaitText(wrapper.data.firstName)],
+      ["Last Name", formatSoftgaitText(wrapper.data.lastName)],
+      ["Phone", formatSoftgaitText(wrapper.data.phone)],
+      ["Email", formatSoftgaitText(wrapper.data.email)],
+      ["Relationship", formatSoftgaitText(wrapper.data.relationship)],
+    ]),
+  );
+}
+
+function renderSoftgaitAddressSection(wrapper) {
+  if (!wrapper?.success || !wrapper.data) {
+    return renderSoftgaitSectionCard("Addresses", wrapper);
+  }
+
+  const temporaryAddress = wrapper.data.TemporaryAddress || {};
+
+  return renderSoftgaitSectionCard(
+    "Addresses",
+    wrapper,
+    [
+      renderSoftgaitRecord("Primary Address", [
+        ["Address Line 1", formatSoftgaitText(wrapper.data.addressLine1)],
+        ["Address Line 2", formatSoftgaitText(wrapper.data.addressLine2)],
+        ["City", formatSoftgaitText(wrapper.data.city)],
+        ["State", formatSoftgaitText(wrapper.data.state)],
+        ["Zip Code", formatSoftgaitText(wrapper.data.zipCode)],
+        ["Type", formatSoftgaitText(wrapper.data.type)],
+        ["Is Primary", formatSoftgaitBoolean(wrapper.data.isPrimary)],
+      ]),
+      renderSoftgaitRecord("Temporary Address", [
+        ["Address", formatSoftgaitText(temporaryAddress.Address)],
+        ["Address 2", formatSoftgaitText(temporaryAddress.Address2)],
+        ["City", formatSoftgaitText(temporaryAddress.City)],
+        ["State", formatSoftgaitText(temporaryAddress.State)],
+        ["Zip", formatSoftgaitText(temporaryAddress.Zip)],
+        ["Address Type", formatSoftgaitText(temporaryAddress.AddressType)],
+        ["From", formatSoftgaitText(temporaryAddress.From)],
+        ["To", formatSoftgaitText(temporaryAddress.To)],
+      ]),
+    ].join(""),
+  );
+}
+
+function renderSoftgaitSectionCard(title, wrapper, content = "") {
+  const isSuccess = Boolean(wrapper?.success);
+  const message = wrapper?.message || (isSuccess ? "Success" : "No data returned.");
+  const badgeLabel = isSuccess ? "Loaded" : "Unavailable";
+
+  return `
+    <article class="card intake-data-card patient-api-section">
+      <div class="surface-card__header patient-api-section__header">
+        <span>${escapeHtml(title)}</span>
+        <span class="patient-api-section__badge${isSuccess ? " is-success" : ""}">${badgeLabel}</span>
+      </div>
+      <div class="patient-api-section__body">
+        <p class="patient-api-section__message">${escapeHtml(message)}</p>
+        ${content || `<div class="patient-api-section__empty">${escapeHtml(message)}</div>`}
+      </div>
+    </article>
+  `;
+}
+
+function renderSoftgaitRecord(title, fields) {
+  const visibleFields = fields.filter(([, value]) => Boolean(value));
+  return `
+    <div class="patient-api-record">
+      ${title ? `<p class="patient-api-record__title">${escapeHtml(title)}</p>` : ""}
+      <div class="intake-data-list">
+        ${visibleFields.map(([label, value], index) => profileField(label, value, index % 2 === 1)).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderSoftgaitMetaPill(label) {
+  return `<span class="patient-api-meta-pill">${escapeHtml(label)}</span>`;
+}
+
+function describeSoftgaitAuthMode(mode) {
+  switch (mode) {
+    case "token":
+      return "Pasted bearer token";
+    case "env_token":
+      return "Server bearer token";
+    case "login":
+      return "Login endpoint";
+    case "env_login":
+      return "Server login credentials";
+    default:
+      return "Unknown";
+  }
+}
+
+function formatSoftgaitText(value) {
+  if (value === null || value === undefined || value === "") return '<span class="patient-api-empty">Not provided</span>';
+  return escapeHtml(value);
+}
+
+function formatSoftgaitBoolean(value) {
+  if (value === null || value === undefined || value === "") return '<span class="patient-api-empty">Not provided</span>';
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true") return "Yes";
+    if (normalized === "false") return "No";
+  }
+  return escapeHtml(value ? "Yes" : "No");
+}
+
+function formatSoftgaitRank(value) {
+  if (value === null || value === undefined || value === "") return '<span class="patient-api-empty">Not provided</span>';
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === "true") return "Primary";
+  if (normalized === "false") return "Secondary";
+  return escapeHtml(value);
+}
+
+function formatSoftgaitDate(value) {
+  if (!value) return '<span class="patient-api-empty">Not provided</span>';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return escapeHtml(value);
+  return escapeHtml(date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }));
+}
+
+function formatSoftgaitDateTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function formatSoftgaitCurrency(value) {
+  if (value === null || value === undefined || value === "") return '<span class="patient-api-empty">Not provided</span>';
+  return escapeHtml(new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(value)));
+}
+
+function formatSoftgaitLink(value) {
+  if (!value) return '<span class="patient-api-empty">Not provided</span>';
+  const url = String(value).trim();
+  if (!/^https?:\/\//i.test(url)) return escapeHtml(url);
+  return `<a class="page-header__text-link" href="${escapeAttribute(url)}" target="_blank" rel="noreferrer">${escapeHtml(url)}</a>`;
 }
 
 function renderBrowseShoes() {
@@ -1465,108 +1769,6 @@ function profileField(label, value, striped = false) {
   `;
 }
 
-function renderSoftgaitApiPreview() {
-  return [
-    renderSoftgaitSection("Patient", [
-      ["Person ID", softgaitPatientApiPreview.patient.personId],
-      ["Patient ID", softgaitPatientApiPreview.patient.patientId],
-      ["First Name", softgaitPatientApiPreview.patient.firstName],
-      ["Last Name", softgaitPatientApiPreview.patient.lastName],
-      ["Date of Birth", formatSoftgaitDate(softgaitPatientApiPreview.patient.dateofBirth)],
-      ["Gender", softgaitPatientApiPreview.patient.gender],
-      ["Phone", softgaitPatientApiPreview.patient.phone],
-      ["Cell Phone", softgaitPatientApiPreview.patient.cellPhone],
-      ["Email", softgaitPatientApiPreview.patient.email],
-      ["Communication Preference", softgaitPatientApiPreview.patient.communicationPreference],
-      ["Portal Username", softgaitPatientApiPreview.patient.portalUsername],
-      ["HIPAA Consent", softgaitPatientApiPreview.patient.hipaaConsent],
-      ["AOB", softgaitPatientApiPreview.patient.aob],
-      ["Fitter in Area", softgaitPatientApiPreview.patient.fitterinarea],
-    ]),
-    softgaitPatientApiPreview.insurances.map((insurance, index) => renderSoftgaitSection(`Insurance ${index + 1}`, [
-      ["Name", insurance.name],
-      ["Type", insurance.type],
-      ["Phone", insurance.phone],
-      ["Policy", insurance.policy],
-      ["Status", insurance.status],
-      ["Primary Rank", insurance.rank === "true" ? "Primary" : insurance.rank],
-    ])).join(""),
-    softgaitPatientApiPreview.physicians.map((physician, index) => renderSoftgaitSection(`Physician ${index + 1}`, [
-      ["Name", physician.name],
-      ["Phone", physician.phone],
-      ["Fax", physician.fax],
-      ["Address", physician.address],
-      ["City / State / Zip", formatCityStateZip(physician.city, physician.state, physician.zip)],
-      ["NPI", physician.npi],
-      ["Taxonomy Code", physician.taxonomyCode],
-      ["Credentials", physician.credentials],
-      ["Specialty", physician.specialty],
-    ])).join(""),
-    softgaitPatientApiPreview.invoices.map((invoice, index) => renderSoftgaitSection(`Invoice ${index + 1}`, [
-      ["Invoice Number", invoice.invoiceNumber],
-      ["Status", invoice.status],
-      ["Amount", formatSoftgaitCurrency(invoice.amount)],
-      ["Stripe Link", invoice.striplink],
-      ["Description", invoice.description],
-    ])).join(""),
-    renderSoftgaitSection("Caregiver", [
-      ["First Name", softgaitPatientApiPreview.caregiver.firstName],
-      ["Last Name", softgaitPatientApiPreview.caregiver.lastName],
-      ["Phone", softgaitPatientApiPreview.caregiver.phone],
-      ["Email", softgaitPatientApiPreview.caregiver.email],
-      ["Relationship", softgaitPatientApiPreview.caregiver.relationship],
-    ]),
-    renderSoftgaitSection("Address", [
-      ["Address Line 1", softgaitPatientApiPreview.addresses.addressLine1],
-      ["Address Line 2", softgaitPatientApiPreview.addresses.addressLine2],
-      ["City", softgaitPatientApiPreview.addresses.city],
-      ["State", softgaitPatientApiPreview.addresses.state],
-      ["Zip Code", softgaitPatientApiPreview.addresses.zipCode],
-      ["Type", softgaitPatientApiPreview.addresses.type],
-      ["Is Primary", softgaitPatientApiPreview.addresses.isPrimary ? "Yes" : "No"],
-      ["Temporary Address", formatSoftgaitTemporaryAddress(softgaitPatientApiPreview.addresses.TemporaryAddress)],
-    ]),
-  ].join("");
-}
-
-function renderSoftgaitSection(title, fields) {
-  return `
-    <article class="card intake-data-card patient-api-section">
-      <div class="surface-card__header">${title}</div>
-      <div class="intake-data-list">
-        ${fields.map(([label, value], index) => profileField(label, formatSoftgaitValue(value), index % 2 === 1)).join("")}
-      </div>
-    </article>
-  `;
-}
-
-function formatSoftgaitValue(value) {
-  if (value === null || value === undefined || value === "") return '<span class="patient-api-empty">Not provided</span>';
-  return String(value);
-}
-
-function formatSoftgaitDate(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
-function formatSoftgaitCurrency(value) {
-  if (value === null || value === undefined || value === "") return "";
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(value));
-}
-
-function formatSoftgaitTemporaryAddress(address) {
-  if (!address) return "";
-  return [
-    [address.Address, address.Address2].filter(Boolean).join(" "),
-    [address.City, address.State].filter(Boolean).join(", "),
-    address.Zip,
-    address.AddressType,
-  ].filter(Boolean).join(" • ");
-}
-
 function profilePairField(label, left, right, striped = false) {
   return `
     <div class="intake-row${striped ? " is-striped" : ""}">
@@ -1666,6 +1868,7 @@ function rerenderCurrentRoute() {
   renderNavigation();
   renderPageChrome(currentRoute, route);
   pageContent.innerHTML = render(currentRoute);
+  maybeAutoLoadSoftgaitPatient();
 }
 
 function renderPageChrome(routeKey, route) {
@@ -2183,6 +2386,98 @@ async function loadInsuranceProviders() {
   }
 }
 
+async function loadSoftgaitConfig() {
+  softgaitApiState.config.error = "";
+
+  try {
+    const response = await fetch("/api/softgait/config", {
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) {
+      throw new Error(`Softgait config request failed with status ${response.status}`);
+    }
+    const data = await response.json();
+    softgaitApiState.config.baseUrl = data.baseUrl || softgaitApiState.config.baseUrl;
+    softgaitApiState.config.hasEnvBearerToken = Boolean(data.hasEnvBearerToken);
+    softgaitApiState.config.hasEnvCredentials = Boolean(data.hasEnvCredentials);
+    softgaitApiState.config.hasDefaultSandboxCredentials = Boolean(data.hasDefaultSandboxCredentials);
+    softgaitApiState.config.defaultUsername = data.defaultUsername || "";
+    if (!softgaitApiState.form.username && softgaitApiState.config.defaultUsername) {
+      softgaitApiState.form.username = softgaitApiState.config.defaultUsername;
+    }
+  } catch (error) {
+    softgaitApiState.config.error = error instanceof Error
+      ? error.message
+      : "Unable to load Softgait proxy configuration.";
+  } finally {
+    softgaitApiState.config.loaded = true;
+    if (currentRoute === "profile-api-test") {
+      rerenderCurrentRoute();
+    }
+  }
+}
+
+function maybeAutoLoadSoftgaitPatient() {
+  if (currentRoute !== "profile-api-test") return;
+  if (!softgaitApiState.config.loaded || softgaitApiState.config.error) return;
+  if (softgaitApiState.loading || softgaitApiState.response || softgaitApiState.autoAttempted) return;
+  softgaitApiState.form.personId = softgaitFixedPatientId;
+  softgaitApiState.autoAttempted = true;
+  void fetchSoftgaitPatientSummary();
+}
+
+async function fetchSoftgaitPatientSummary() {
+  const personId = Number(softgaitApiState.form.personId);
+  if (!Number.isInteger(personId) || personId <= 0) {
+    softgaitApiState.error = "Enter a valid positive personId.";
+    softgaitApiState.response = null;
+    rerenderCurrentRoute();
+    return;
+  }
+
+  const requestBody = {
+    personId,
+    username: softgaitApiState.form.username.trim(),
+    password: softgaitApiState.form.password,
+    token: softgaitApiState.form.token.trim(),
+  };
+
+  softgaitApiState.loading = true;
+  softgaitApiState.error = "";
+  rerenderCurrentRoute();
+
+  try {
+    const response = await fetch("/api/softgait/patient-summary", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(payload?.error || payload?.message || `Softgait lookup failed with status ${response.status}`);
+    }
+
+    if (!payload?.data) {
+      throw new Error(payload?.message || "Softgait lookup returned no payload.");
+    }
+
+    softgaitApiState.response = payload.data;
+    softgaitApiState.error = payload.success ? "" : (payload.message || "Softgait returned no data.");
+  } catch (error) {
+    softgaitApiState.response = null;
+    softgaitApiState.error = error instanceof Error
+      ? error.message
+      : "Unable to load patient details from Softgait.";
+  } finally {
+    softgaitApiState.loading = false;
+    rerenderCurrentRoute();
+  }
+}
+
 function renderInsuranceProviderField() {
   const providerValue = insuranceEditState.providerInput;
   const helperText = insuranceEditState.manualEntry
@@ -2331,12 +2626,17 @@ function normalizeInsuranceProviderName(providerName) {
   return String(providerName || "").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
-function escapeAttribute(value) {
+function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#39;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
+}
+
+function escapeAttribute(value) {
+  return escapeHtml(value);
 }
 
 function emptyPhysicianRecord() {
