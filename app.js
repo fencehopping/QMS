@@ -1019,7 +1019,7 @@ function renderProfileApiTest() {
   const lookupStateLabel = softgaitApiState.loading
     ? "Fetching live data"
     : softgaitApiState.response
-      ? "Live response"
+      ? `Patient ${softgaitApiState.response.personId || softgaitFixedPatientId}`
       : softgaitApiState.autoAttempted
         ? "Auto-load attempted"
         : "Auto-loading on open";
@@ -1029,31 +1029,14 @@ function renderProfileApiTest() {
       <section class="card surface-card patient-api-card">
         <div class="surface-card__header patient-api-card__header">
           <div>
-            <p class="patient-api-card__eyebrow">Softgait PatientDetails API</p>
-            <h2>Fixed patient lookup</h2>
+            <p class="patient-api-card__eyebrow">API Test Record</p>
+            <h2>Patient ${softgaitFixedPatientId}</h2>
           </div>
           <span class="patient-api-card__badge patient-api-card__badge--muted">${lookupStateLabel}</span>
         </div>
         <div class="patient-api-card__content">
-          <p class="patient-api-card__summary">This API test page now loads a single fixed patient on open. It no longer exposes any manual patient search or auth controls in the UI.</p>
-          ${renderSoftgaitConfigSummary()}
-          <div class="patient-api-meta-row">
-            ${renderSoftgaitMetaPill(`Patient ID: ${softgaitFixedPatientId}`)}
-            ${renderSoftgaitMetaPill("Mode: Fixed API test record")}
-          </div>
           ${softgaitApiState.error ? `<p class="patient-api-feedback patient-api-feedback--error">${escapeHtml(softgaitApiState.error)}</p>` : ""}
-        </div>
-      </section>
-
-      <section class="card surface-card patient-api-card">
-        <div class="surface-card__header patient-api-card__header">
-          <div>
-            <p class="patient-api-card__eyebrow">Live response</p>
-            <h2>Patient details payload</h2>
-          </div>
-          <span class="patient-api-card__badge patient-api-card__badge--muted">No order status endpoint documented</span>
-        </div>
-        <div class="patient-api-card__content">
+          ${renderSoftgaitConfigSummary()}
           ${renderSoftgaitApiResults()}
         </div>
       </section>
@@ -2420,8 +2403,13 @@ async function loadSoftgaitConfig() {
 function maybeAutoLoadSoftgaitPatient() {
   if (currentRoute !== "profile-api-test") return;
   if (!softgaitApiState.config.loaded || softgaitApiState.config.error) return;
-  if (softgaitApiState.loading || softgaitApiState.response || softgaitApiState.autoAttempted) return;
+  if (softgaitApiState.loading) return;
   softgaitApiState.form.personId = softgaitFixedPatientId;
+  if (String(softgaitApiState.response?.personId || "") === softgaitFixedPatientId) {
+    softgaitApiState.autoAttempted = true;
+    return;
+  }
+  softgaitApiState.response = null;
   softgaitApiState.autoAttempted = true;
   void fetchSoftgaitPatientSummary();
 }
