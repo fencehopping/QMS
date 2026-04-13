@@ -23,6 +23,12 @@ const patientRoutes = {
     footer: "View Profile API test",
     subtitle: "Preview the full Softgait PatientDetails payload and confirm which fields are currently documented for integration.",
   },
+  "shoe-order-test": {
+    label: "Shoe Order Test",
+    title: "Shoe Order API Test",
+    footer: "Shoe Order Test",
+    subtitle: "Preview the diabetic shoe order payload your boss shared, including documentation dates, shoe specs, and transaction history.",
+  },
   aob: {
     label: "AOB Form",
     title: "Assignment of Benefits",
@@ -235,6 +241,7 @@ const iconMap = {
   "browse-shoes": shoeIcon(),
   profile: fontAwesomeIcon("fa-user"),
   "profile-api-test": fontAwesomeIcon("fa-vial"),
+  "shoe-order-test": fontAwesomeIcon("fa-shoe-prints"),
   aob: documentIcon(),
   orders: fontAwesomeIcon("fa-cart-shopping"),
   records: orderIcon(),
@@ -249,6 +256,7 @@ const views = {
   "browse-shoes": renderBrowseShoes,
   profile: renderProfile,
   "profile-api-test": renderProfileApiTest,
+  "shoe-order-test": renderShoeOrderApiTest,
   aob: renderAob,
   orders: renderOrders,
   records: renderPlaceholder,
@@ -349,6 +357,160 @@ const catalogSections = [
     ],
   },
 ];
+
+const shoeOrderTestResponse = {
+  success: true,
+  message: "Success",
+  data: {
+    orderDetails: {
+      salesPerson: "",
+      physician: "LEOR SKOCZYLAS",
+      fitterInArea: "Sandra Costlow",
+      alternateFitter: "JARED BEDICK / By Road7.64 Miles",
+      fittingAppointmentDate: "2026-02-16T09:00:00",
+      dispensingAppointment: null,
+      priorAuth: "Auth Started",
+      doFollowUp: "Resent D.O.-2026-04-10",
+      patientFollowUp: "Mailed DO-2026-04-10",
+      doDetails: {
+        product: "Diabetic Shoes",
+        dateDispensed: null,
+        insertType: "A5514 - Custom Molded Inserts- CAD-CAM",
+        toeFiller: "No Filler",
+        diagnosis1: "",
+        rxSignatureDate: "2026-01-29T00:00:00",
+        rxExpirationDate: "2026-07-29T00:00:00",
+        cmnSignatureDate: "2026-01-30T00:00:00",
+        cmnExpirationDate: "2026-04-30T00:00:00",
+        accommodations: "",
+      },
+      shoeDetails: {
+        request: 810176,
+        barCode: "190446890195",
+        manufacturer: "DR COMFORT",
+        dealer: "DR. COMFORT",
+        gender: "Male",
+        style: "52180",
+        colour: "GREY",
+        size: "13",
+        width: "WIDE (E/EE)",
+        closureType: "Elastic Lace",
+        arrivalDate: "2026-04-10T06:51:35",
+        insoles: "Custom Molded",
+        description: "Finch Grey Elastic Lace",
+        secondChoice: "Manufacturer: DR COMFORT-Style:52050-Color:BLUE-ClosureType: Elastic Lace-Size:13-Width:WIDE (E/EE)",
+      },
+      txnHistory: [
+        {
+          date: "01/28/2026",
+          time: "10:10:11 AM",
+          status: "CREATED D.O.",
+          createdBy: "MARKETTA WILSON",
+          misc: "",
+        },
+        {
+          date: "01/28/2026",
+          time: "10:30:38 AM",
+          status: "FAX IN QUE TO SEND",
+          createdBy: "MARKETTA WILSON",
+          misc: "Sending",
+        },
+        {
+          date: "01/30/2026",
+          time: "9:11:25 AM",
+          status: "INCOMPLETE D.O",
+          createdBy: "JOHNNA DURBIN",
+          misc: "Needs to complete Steps 1-3 on CMN.",
+        },
+        {
+          date: "01/30/2026",
+          time: "11:17:46 AM",
+          status: "CREATED D.O Incomplete",
+          createdBy: "MAGALYS PEREZ",
+          misc: "",
+        },
+        {
+          date: "02/03/2026",
+          time: "2:44:15 PM",
+          status: "USEABLE",
+          createdBy: "ELSIE SANTIAGO",
+          misc: "",
+        },
+        {
+          date: "02/03/2026",
+          time: "2:44:15 PM",
+          status: "INCOMPLETE D.O MARKED AS COMPLETED",
+          createdBy: "ELSIE SANTIAGO",
+          misc: "",
+        },
+        {
+          date: "02/03/2026",
+          time: "2:44:15 PM",
+          status: "D.O. FILLED",
+          createdBy: "ELSIE SANTIAGO",
+          misc: "",
+        },
+        {
+          date: "02/04/2026",
+          time: "7:55:50 AM",
+          status: "SHOE FITTER ASSIGNED",
+          createdBy: "Sandra Costlow",
+          misc: "null Fitter :Sandra Costlow",
+        },
+        {
+          date: "02/16/2026",
+          time: "11:03:17 AM",
+          status: "FITTER DOCUMENT SIGNED",
+          createdBy: "MARCELO PINHEIRO",
+          misc: "<a target='_blank' href='../Handlers/fileDownloadHandler.ashx?filePath=D:\\MYDMEDeployment\\Files\\custom_inpersonForm\\668981_349253.pdf'>Document</a>",
+        },
+        {
+          date: "04/10/2026",
+          time: "9:30:23 AM",
+          status: "CREATED REVISE D.O",
+          createdBy: "MARC VETRANO",
+          misc: "test , Reason: Expired DO <a href='/DME/ReviseDOFormPdf?personId=668981&categoryNo=1&yhpId=0&productId=1&doId=349253'>View Revise DO</a>",
+        },
+        {
+          date: "02/16/2026",
+          time: "1:54:46 PM",
+          status: "REQUESTED",
+          createdBy: "Sandra Costlow",
+          misc: "PoNo # 429548 ",
+        },
+        {
+          date: "02/16/2026",
+          time: "1:54:46 PM",
+          status: "3D SCANNED LINKED TO ORDER",
+          createdBy: "Sandra Costlow",
+          misc: "<a href='/PatientManagement/DownloadUploadedDocument?fileName=D:\\MyDmeDeployment\\Files\\uploads3d\\219093_Marc_Brawer.zip'>View Scans</a> <a href='/PatientManagement/DownloadUploadedDocument?fileName=D:\\MYDMEDeployment\\Files\\3DScan_219093_MARC_BRAWER_349253.pdf'>Order Form</a>",
+        },
+        {
+          date: "02/16/2026",
+          time: "1:54:46 PM",
+          status: "ORDERED",
+          createdBy: "Sandra Costlow",
+          misc: "",
+        },
+        {
+          date: "02/19/2026",
+          time: "1:32:07 PM",
+          status: "ORDER CONFIRMED BY MANUFACTURER",
+          createdBy: "WILLIAM VANEGAS",
+          misc: "15161438",
+        },
+        {
+          date: "04/10/2026",
+          time: "6:51:35 AM",
+          status: "RESERVED",
+          createdBy: "Sandra Costlow",
+          misc: "<a href='/TestingSupplies/TSPOD?personId=SO1oz9a7gMw=&doId=349253&categoryNo=1&requestId=810176' target='_blank'>View POD</a>",
+        },
+      ],
+    },
+  },
+  statusCode: 200,
+};
 
 const fitterPatients = [
   ["80046", "BRETT", "SCHISSLER", "04/01/1980", "CGM", "Canceled", "", "", ""],
@@ -1044,6 +1206,134 @@ function renderProfileApiTest() {
   `;
 }
 
+function renderShoeOrderApiTest() {
+  const response = shoeOrderTestResponse;
+  const order = response?.data?.orderDetails;
+
+  if (!response?.success || !order) {
+    return `
+      <div class="stack">
+        <section class="card surface-card patient-api-card">
+          <div class="surface-card__header patient-api-card__header">
+            <div>
+              <p class="patient-api-card__eyebrow">API Test Record</p>
+              <h2>Shoe Order</h2>
+            </div>
+            <span class="patient-api-card__badge patient-api-card__badge--muted">Unavailable</span>
+          </div>
+          <div class="patient-api-card__content">
+            <div class="patient-api-empty-state">
+              <p>${escapeHtml(response?.message || "No shoe order data returned.")}</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
+  const doDetails = order.doDetails || {};
+  const shoeDetails = order.shoeDetails || {};
+  const timelineEntries = sortShoeOrderTransactions(order.txnHistory);
+  const latestEntry = timelineEntries[timelineEntries.length - 1] || null;
+  const secondChoiceFields = getShoeOrderSecondChoiceFields(shoeDetails.secondChoice);
+  const metaPills = [
+    shoeDetails.request ? renderSoftgaitMetaPill(`Request #${shoeDetails.request}`) : "",
+    latestEntry?.status ? renderSoftgaitMetaPill(`Latest: ${latestEntry.status}`) : "",
+    order.priorAuth ? renderSoftgaitMetaPill(`Prior Auth: ${order.priorAuth}`) : "",
+    order.fittingAppointmentDate ? renderSoftgaitMetaPill(`Fitting: ${formatSoftgaitDateTime(order.fittingAppointmentDate)}`) : "",
+    shoeDetails.arrivalDate ? renderSoftgaitMetaPill(`Arrival: ${formatSoftgaitDateTime(shoeDetails.arrivalDate)}`) : "",
+  ].filter(Boolean).join("");
+
+  return `
+    <div class="stack">
+      <section class="card surface-card patient-api-card shoe-order-test-card">
+        <div class="surface-card__header patient-api-card__header">
+          <div>
+            <p class="patient-api-card__eyebrow">API Test Record</p>
+            <h2>${escapeHtml(doDetails.product || "Shoe Order")}</h2>
+          </div>
+          <span class="patient-api-card__badge shoe-order-status-badge ${getShoeOrderStatusBadgeClass(latestEntry?.status)}">${escapeHtml(latestEntry?.status || "No status yet")}</span>
+        </div>
+        <div class="patient-api-card__content shoe-order-test-card__content">
+          <section class="shoe-order-hero">
+            <div class="shoe-order-hero__copy">
+              <p class="patient-api-card__summary">This test page renders the sample shoe-order JSON as a patient-friendly card view, with paperwork checkpoints, product details, and a full transaction timeline.</p>
+              <div class="patient-api-meta-row">${metaPills}</div>
+              <div class="shoe-order-overview">
+                ${renderShoeOrderHighlight("Physician", formatSoftgaitText(order.physician))}
+                ${renderShoeOrderHighlight("Fitter In Area", formatSoftgaitText(order.fitterInArea))}
+                ${renderShoeOrderHighlight("Selected Shoe", formatSoftgaitText(shoeDetails.description))}
+                ${renderShoeOrderHighlight("Arrival", formatSoftgaitDate(shoeDetails.arrivalDate))}
+              </div>
+            </div>
+            <div class="shoe-order-hero__media">
+              <img src="./images/shoes.jpg" alt="Therapeutic shoe preview" />
+              <div class="shoe-order-hero__caption">
+                <span>${escapeHtml(shoeDetails.manufacturer || "Manufacturer pending")}</span>
+                <strong>${escapeHtml([shoeDetails.style, shoeDetails.colour].filter(Boolean).join(" / ") || "Style pending")}</strong>
+              </div>
+            </div>
+          </section>
+
+          <div class="shoe-order-sections">
+            ${renderShoeOrderSectionCard("Order Routing", [
+              ["Sales Person", formatSoftgaitText(order.salesPerson)],
+              ["Physician", formatSoftgaitText(order.physician)],
+              ["Fitter In Area", formatSoftgaitText(order.fitterInArea)],
+              ["Alternate Fitter", formatSoftgaitText(order.alternateFitter)],
+              ["Fitting Appointment", formatSoftgaitDate(order.fittingAppointmentDate)],
+              ["Dispensing Appointment", formatSoftgaitDate(order.dispensingAppointment)],
+              ["Prior Auth", formatSoftgaitText(order.priorAuth)],
+              ["D.O. Follow Up", formatSoftgaitText(order.doFollowUp)],
+              ["Patient Follow Up", formatSoftgaitText(order.patientFollowUp)],
+            ])}
+
+            ${renderShoeOrderSectionCard("Documentation", [
+              ["Product", formatSoftgaitText(doDetails.product)],
+              ["Insert Type", formatSoftgaitText(doDetails.insertType)],
+              ["Toe Filler", formatSoftgaitText(doDetails.toeFiller)],
+              ["Date Dispensed", formatSoftgaitDate(doDetails.dateDispensed)],
+              ["RX Signature Date", formatSoftgaitDate(doDetails.rxSignatureDate)],
+              ["RX Expiration", formatSoftgaitDate(doDetails.rxExpirationDate)],
+              ["CMN Signature Date", formatSoftgaitDate(doDetails.cmnSignatureDate)],
+              ["CMN Expiration", formatSoftgaitDate(doDetails.cmnExpirationDate)],
+              ["Diagnosis", formatSoftgaitText(doDetails.diagnosis1)],
+              ["Accommodations", formatSoftgaitText(doDetails.accommodations)],
+            ])}
+
+            ${renderShoeOrderSectionCard("Shoe Selection", [
+              ["Request", formatSoftgaitText(shoeDetails.request)],
+              ["Barcode", formatSoftgaitText(shoeDetails.barCode)],
+              ["Manufacturer", formatSoftgaitText(shoeDetails.manufacturer)],
+              ["Dealer", formatSoftgaitText(shoeDetails.dealer)],
+              ["Gender", formatSoftgaitText(shoeDetails.gender)],
+              ["Style", formatSoftgaitText(shoeDetails.style)],
+              ["Colour", formatSoftgaitText(shoeDetails.colour)],
+              ["Size", formatSoftgaitText(shoeDetails.size)],
+              ["Width", formatSoftgaitText(shoeDetails.width)],
+              ["Closure Type", formatSoftgaitText(shoeDetails.closureType)],
+              ["Insoles", formatSoftgaitText(shoeDetails.insoles)],
+              ["Description", formatSoftgaitText(shoeDetails.description)],
+              ["Arrival Date", formatSoftgaitDate(shoeDetails.arrivalDate)],
+              ...secondChoiceFields,
+            ])}
+          </div>
+        </div>
+      </section>
+
+      <section class="card surface-card shoe-order-timeline-card">
+        <div class="surface-card__header patient-api-section__header">
+          <span>Transaction History</span>
+          <span class="patient-api-section__badge is-success">${timelineEntries.length} Events</span>
+        </div>
+        <div class="shoe-order-timeline">
+          ${timelineEntries.map((entry, index) => renderShoeOrderTimelineEntry(entry, index === timelineEntries.length - 1)).join("")}
+        </div>
+      </section>
+    </div>
+  `;
+}
+
 function renderSoftgaitConfigSummary() {
   if (!softgaitApiState.config.loaded) {
     return '<p class="patient-api-feedback">Checking local Softgait proxy configuration...</p>';
@@ -1516,6 +1806,194 @@ function renderOrders() {
   `;
 }
 
+function renderShoeOrderHighlight(label, value) {
+  return `
+    <article class="shoe-order-highlight">
+      <span class="shoe-order-highlight__label">${escapeHtml(label)}</span>
+      <span class="shoe-order-highlight__value">${value}</span>
+    </article>
+  `;
+}
+
+function renderShoeOrderSectionCard(title, fields) {
+  return `
+    <article class="card intake-data-card patient-api-section shoe-order-section">
+      <div class="surface-card__header patient-api-section__header">
+        <span>${escapeHtml(title)}</span>
+      </div>
+      <div class="patient-api-section__body">
+        <div class="intake-data-list">
+          ${fields.map(([label, value], index) => profileField(label, value, index % 2 === 1)).join("")}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderShoeOrderTimelineEntry(entry, isLatest = false) {
+  const timestamp = formatShoeOrderTransactionTimestamp(entry);
+  return `
+    <article class="shoe-order-timeline__entry${isLatest ? " is-latest" : ""}">
+      <div class="shoe-order-timeline__topline">
+        <div>
+          <p class="shoe-order-timeline__status">${escapeHtml(entry.status || "Status not provided")}</p>
+          <p class="shoe-order-timeline__meta">Created by ${escapeHtml(entry.createdBy || "Unknown")}</p>
+        </div>
+        <span class="shoe-order-timeline__date">${escapeHtml(timestamp)}</span>
+      </div>
+      <div class="shoe-order-timeline__note">${formatShoeOrderTransactionMisc(entry.misc)}</div>
+    </article>
+  `;
+}
+
+function sortShoeOrderTransactions(entries) {
+  if (!Array.isArray(entries)) return [];
+  return [...entries].sort((left, right) => getShoeOrderTransactionTime(left) - getShoeOrderTransactionTime(right));
+}
+
+function getShoeOrderTransactionTime(entry) {
+  const date = parseShoeOrderTransactionDate(entry?.date, entry?.time);
+  return date ? date.getTime() : 0;
+}
+
+function parseShoeOrderTransactionDate(dateValue, timeValue) {
+  const dateMatch = String(dateValue || "").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!dateMatch) return null;
+
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+  const timeMatch = String(timeValue || "").trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)$/i);
+
+  if (timeMatch) {
+    hours = Number(timeMatch[1]) % 12;
+    minutes = Number(timeMatch[2]);
+    seconds = Number(timeMatch[3] || 0);
+    if (timeMatch[4].toUpperCase() === "PM") {
+      hours += 12;
+    }
+  }
+
+  return new Date(
+    Number(dateMatch[3]),
+    Number(dateMatch[1]) - 1,
+    Number(dateMatch[2]),
+    hours,
+    minutes,
+    seconds,
+  );
+}
+
+function formatShoeOrderTransactionTimestamp(entry) {
+  const parsed = parseShoeOrderTransactionDate(entry?.date, entry?.time);
+  if (!parsed || Number.isNaN(parsed.getTime())) {
+    return [entry?.date, entry?.time].filter(Boolean).join(" ") || "Date unavailable";
+  }
+
+  return parsed.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function getShoeOrderSecondChoiceFields(value) {
+  const parsed = parseShoeOrderSecondChoice(value);
+  if (parsed.length) {
+    return parsed.map(([label, fieldValue]) => [`2nd Choice ${label}`, formatSoftgaitText(fieldValue)]);
+  }
+
+  return value ? [["Second Choice", formatSoftgaitText(value)]] : [];
+}
+
+function parseShoeOrderSecondChoice(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return [];
+
+  const pattern = /(Manufacturer|Style|Color|Colour|ClosureType|Size|Width):\s*([^]+?)(?=-(?:Manufacturer|Style|Color|Colour|ClosureType|Size|Width):|$)/g;
+  const matches = [];
+  let match = pattern.exec(raw);
+
+  while (match) {
+    matches.push([normalizeShoeOrderSecondChoiceLabel(match[1]), match[2].trim()]);
+    match = pattern.exec(raw);
+  }
+
+  return matches;
+}
+
+function normalizeShoeOrderSecondChoiceLabel(label) {
+  switch (label) {
+    case "ClosureType":
+      return "Closure Type";
+    case "Color":
+      return "Color";
+    case "Colour":
+      return "Colour";
+    default:
+      return label;
+  }
+}
+
+function getShoeOrderStatusBadgeClass(status) {
+  const normalized = String(status || "").trim().toLowerCase();
+  if (!normalized) return "shoe-order-status-badge--muted";
+  if (normalized.includes("reserved") || normalized.includes("confirmed") || normalized.includes("ordered")) {
+    return "shoe-order-status-badge--success";
+  }
+  if (normalized.includes("incomplete") || normalized.includes("revise")) {
+    return "shoe-order-status-badge--attention";
+  }
+  return "shoe-order-status-badge--muted";
+}
+
+function formatShoeOrderTransactionMisc(value) {
+  const cleaned = String(value || "").replace(/^null\b[:\s-]*/i, "").trim();
+  if (!cleaned) return '<span class="patient-api-empty">No note provided</span>';
+  if (!/[<>]/.test(cleaned)) return escapeHtml(cleaned);
+
+  const parser = new DOMParser();
+  const document = parser.parseFromString(`<div>${cleaned}</div>`, "text/html");
+  const root = document.body.firstElementChild;
+  if (!root) return escapeHtml(cleaned);
+
+  const content = [...root.childNodes].map((node) => renderShoeOrderMiscNode(node)).join("").trim();
+  return content || '<span class="patient-api-empty">No note provided</span>';
+}
+
+function renderShoeOrderMiscNode(node) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return escapeHtml(node.textContent || "");
+  }
+
+  if (node.nodeType !== Node.ELEMENT_NODE) {
+    return "";
+  }
+
+  if (node.nodeName === "A") {
+    const href = node.getAttribute("href") || "";
+    const label = (node.textContent || href || "Open link").trim();
+    const resolvedHref = resolveShoeOrderHref(href);
+    if (!resolvedHref) return escapeHtml(label);
+    return `<a class="page-header__text-link" href="${escapeAttribute(resolvedHref)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`;
+  }
+
+  return escapeHtml(node.textContent || "");
+}
+
+function resolveShoeOrderHref(href) {
+  const raw = String(href || "").trim();
+  if (!raw) return "";
+
+  try {
+    return new URL(raw, "https://portal.quantummedicalsupply.com/").toString();
+  } catch {
+    return "";
+  }
+}
+
 function renderSupport() {
   return `
     <div class="stack">
@@ -1873,7 +2351,7 @@ function getRoutes() {
 function getPortalNavRoutes() {
   return currentPortal === "fitter"
     ? ["home", "signout"]
-    : ["profile", "profile-api-test", "orders", "support", "security", "signout"];
+    : ["profile", "profile-api-test", "shoe-order-test", "orders", "support", "security", "signout"];
 }
 
 function getDefaultRoute() {

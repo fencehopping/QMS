@@ -2262,6 +2262,204 @@ button {
   font-style: italic;
 }
 
+.shoe-order-test-card {
+  overflow: hidden;
+}
+
+.shoe-order-test-card__content {
+  display: grid;
+  gap: 22px;
+}
+
+.shoe-order-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 320px);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.shoe-order-hero__copy {
+  display: grid;
+  align-content: start;
+}
+
+.shoe-order-overview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.shoe-order-highlight {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(165, 184, 208, 0.34);
+  border-radius: 18px;
+  background: rgba(247, 250, 255, 0.86);
+}
+
+.shoe-order-highlight__label {
+  color: #67809e;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shoe-order-highlight__value {
+  color: #122234;
+  font-size: 0.96rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.shoe-order-hero__media {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  min-height: 280px;
+  background: linear-gradient(180deg, rgba(229, 239, 249, 0.92), rgba(210, 225, 241, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.shoe-order-hero__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.shoe-order-hero__caption {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(12, 27, 43, 0.74);
+  color: rgba(233, 242, 250, 0.9);
+  backdrop-filter: blur(10px);
+}
+
+.shoe-order-hero__caption span {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shoe-order-hero__caption strong {
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.shoe-order-sections {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.shoe-order-section {
+  overflow: hidden;
+}
+
+.shoe-order-status-badge {
+  white-space: normal;
+}
+
+.shoe-order-status-badge--success {
+  background: rgba(49, 137, 95, 0.14);
+  color: #226f4a;
+}
+
+.shoe-order-status-badge--attention {
+  background: rgba(241, 181, 71, 0.2);
+  color: #956313;
+}
+
+.shoe-order-status-badge--muted {
+  background: rgba(16, 62, 82, 0.08);
+  color: #37566d;
+}
+
+.shoe-order-timeline-card {
+  overflow: hidden;
+}
+
+.shoe-order-timeline {
+  display: grid;
+  gap: 0;
+  padding: 8px 20px 20px;
+}
+
+.shoe-order-timeline__entry {
+  display: grid;
+  gap: 10px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+
+.shoe-order-timeline__entry:first-child {
+  border-top: 0;
+}
+
+.shoe-order-timeline__entry.is-latest {
+  padding-left: 14px;
+  border-left: 3px solid rgba(79, 131, 217, 0.58);
+}
+
+.shoe-order-timeline__topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.shoe-order-timeline__status,
+.shoe-order-timeline__meta {
+  margin: 0;
+}
+
+.shoe-order-timeline__status {
+  color: #103e52;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.shoe-order-timeline__meta {
+  margin-top: 6px;
+  color: #66788e;
+  font-size: 0.86rem;
+}
+
+.shoe-order-timeline__date {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(79, 131, 217, 0.1);
+  color: #355470;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.shoe-order-timeline__note {
+  color: #44586f;
+  font-size: 0.93rem;
+  line-height: 1.6;
+}
+
+.shoe-order-timeline__note a {
+  font-weight: 700;
+}
+
 .detail-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3399,6 +3597,26 @@ button {
   .orders-qualify-grid,
   .orders-meta {
     grid-template-columns: 1fr;
+  }
+
+  .shoe-order-hero,
+  .shoe-order-overview,
+  .shoe-order-sections {
+    grid-template-columns: 1fr;
+  }
+
+  .shoe-order-timeline {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .shoe-order-timeline__topline {
+    display: grid;
+  }
+
+  .shoe-order-timeline__date {
+    white-space: normal;
+    justify-self: start;
   }
 
   .orders-product-card__media img {
