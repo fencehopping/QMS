@@ -1,3 +1,5 @@
+import { renderShoeOrderStatusPage } from "./shoe-order/ShoeOrderStatusPage.js";
+
 const patientRoutes = {
   home: {
     label: "Home",
@@ -24,10 +26,10 @@ const patientRoutes = {
     subtitle: "Preview the full Softgait PatientDetails payload and confirm which fields are currently documented for integration.",
   },
   "shoe-order-test": {
-    label: "Shoe Order Test",
-    title: "Shoe Order API Test",
-    footer: "Shoe Order Test",
-    subtitle: "Preview the diabetic shoe order payload your boss shared, including documentation dates, shoe specs, and transaction history.",
+    label: "Shoe Order Status",
+    title: "Shoe Order Status",
+    footer: "Shoe Order Status",
+    subtitle: "Track your order, see what happens next, and know who is helping you at each step.",
   },
   aob: {
     label: "AOB Form",
@@ -256,7 +258,7 @@ const views = {
   "browse-shoes": renderBrowseShoes,
   profile: renderProfile,
   "profile-api-test": renderProfileApiTest,
-  "shoe-order-test": renderShoeOrderApiTest,
+  "shoe-order-test": () => renderShoeOrderStatusPage(),
   aob: renderAob,
   orders: renderOrders,
   records: renderPlaceholder,

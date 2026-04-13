@@ -3020,6 +3020,427 @@ button {
   border: 0;
 }
 
+.shoe-status-page {
+  display: grid;
+}
+
+.shoe-status-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(300px, 0.88fr);
+  grid-template-areas:
+    "hero hero"
+    "product product"
+    "current appointments"
+    "next paperwork"
+    "timeline care";
+  gap: 18px;
+  align-items: start;
+}
+
+.shoe-status-grid__area {
+  min-width: 0;
+}
+
+.shoe-status-grid__area--hero {
+  grid-area: hero;
+}
+
+.shoe-status-grid__area--current {
+  grid-area: current;
+}
+
+.shoe-status-grid__area--next {
+  grid-area: next;
+}
+
+.shoe-status-grid__area--appointments {
+  grid-area: appointments;
+}
+
+.shoe-status-grid__area--product {
+  grid-area: product;
+}
+
+.shoe-status-grid__area--paperwork {
+  grid-area: paperwork;
+}
+
+.shoe-status-grid__area--care-team {
+  grid-area: care;
+}
+
+.shoe-status-grid__area--timeline {
+  grid-area: timeline;
+}
+
+.shoe-status-card {
+  overflow: hidden;
+}
+
+.shoe-status-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shoe-status-card__title {
+  margin: 0;
+  color: #103e52;
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.shoe-status-card__body {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+}
+
+.shoe-status-card__kicker {
+  margin: 0;
+  color: #5c81a8;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.shoe-status-card__headline {
+  margin: 0;
+  color: #122234;
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.shoe-status-card__headline--product {
+  font-size: clamp(1.2rem, 1.8vw, 1.55rem);
+}
+
+.shoe-status-card__supporting {
+  margin: 0;
+  color: #61748a;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.shoe-status-card__copy {
+  margin: 0;
+  color: #506273;
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.shoe-status-card__empty {
+  margin: 6px 0 0;
+  color: #61748a;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.shoe-status-card__button {
+  width: auto;
+  justify-self: start;
+  text-decoration: none;
+}
+
+.shoe-status-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.shoe-status-hero {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(125, 182, 255, 0.2), transparent 28%),
+    linear-gradient(180deg, rgba(250, 252, 255, 0.92), rgba(241, 247, 254, 0.92));
+}
+
+.shoe-status-hero__headline-wrap {
+  display: grid;
+  gap: 10px;
+}
+
+.shoe-status-hero__headline {
+  margin: 0;
+  color: #102436;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.shoe-status-hero__summary {
+  margin: 0;
+  max-width: 760px;
+  color: #536679;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.shoe-status-hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.shoe-status-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.shoe-status-chip--neutral {
+  background: rgba(16, 62, 82, 0.08);
+  color: #36556d;
+}
+
+.shoe-status-chip--info {
+  background: rgba(79, 131, 217, 0.12);
+  color: #355470;
+}
+
+.shoe-status-chip--success {
+  background: rgba(49, 137, 95, 0.14);
+  color: #226f4a;
+}
+
+.shoe-status-chip--warning {
+  background: rgba(241, 181, 71, 0.2);
+  color: #956313;
+}
+
+.shoe-status-stepper {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.shoe-status-step {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(159, 180, 205, 0.28);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.shoe-status-step__number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.shoe-status-step__label {
+  color: #29445f;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.shoe-status-step--complete .shoe-status-step__number {
+  background: #2f8b61;
+  color: white;
+}
+
+.shoe-status-step--current {
+  border-color: rgba(79, 131, 217, 0.34);
+  background: linear-gradient(180deg, rgba(236, 244, 255, 0.92), rgba(245, 249, 255, 0.82));
+}
+
+.shoe-status-step--current .shoe-status-step__number {
+  background: #4f83d9;
+  color: white;
+}
+
+.shoe-status-step--upcoming .shoe-status-step__number {
+  background: rgba(16, 62, 82, 0.08);
+  color: #5d7086;
+}
+
+.shoe-status-note {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(246, 249, 253, 0.92);
+  border: 1px solid rgba(162, 181, 206, 0.22);
+}
+
+.shoe-status-note__label {
+  color: #65809c;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shoe-status-note__value {
+  color: #132536;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.shoe-status-list {
+  display: grid;
+  gap: 0;
+}
+
+.shoe-status-list--compact .shoe-status-row {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.shoe-status-row {
+  display: grid;
+  gap: 6px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(169, 185, 204, 0.18);
+}
+
+.shoe-status-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.shoe-status-row:last-child {
+  padding-bottom: 0;
+}
+
+.shoe-status-row__label {
+  color: #62809d;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shoe-status-row__value {
+  color: #17212e;
+  font-size: 0.96rem;
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+.shoe-status-appointment {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(248, 251, 255, 0.84);
+  border: 1px solid rgba(170, 187, 208, 0.24);
+}
+
+.shoe-status-product__hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(246, 250, 255, 0.92);
+  border: 1px solid rgba(170, 187, 208, 0.22);
+}
+
+.shoe-status-product__hero-copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.shoe-status-product__thumbnail {
+  flex: 0 0 auto;
+  width: 92px;
+  height: 92px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(226, 237, 248, 0.92), rgba(214, 228, 244, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.shoe-status-product__thumbnail img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.shoe-status-subsection {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.shoe-status-timeline {
+  display: grid;
+  gap: 0;
+  padding: 6px 20px 20px;
+}
+
+.shoe-status-timeline__item {
+  display: grid;
+  gap: 10px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(169, 185, 204, 0.18);
+}
+
+.shoe-status-timeline__item:first-child {
+  border-top: 0;
+}
+
+.shoe-status-timeline__item.is-latest {
+  padding-left: 14px;
+  border-left: 3px solid rgba(79, 131, 217, 0.54);
+}
+
+.shoe-status-timeline__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shoe-status-timeline__title,
+.shoe-status-timeline__date,
+.shoe-status-timeline__copy {
+  margin: 0;
+}
+
+.shoe-status-timeline__title {
+  color: #122234;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.shoe-status-timeline__date {
+  margin-top: 5px;
+  color: #6a7e95;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.shoe-status-timeline__copy {
+  color: #516273;
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
 @media (max-width: 1100px) {
   .main-panel {
     padding-right: 24px;
@@ -3040,6 +3461,19 @@ button {
 
   .modal-grid {
     grid-template-columns: 1fr;
+  }
+
+  .shoe-status-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "hero"
+      "current"
+      "next"
+      "appointments"
+      "product"
+      "paperwork"
+      "care"
+      "timeline";
   }
 
   .modal-grid--physician {
@@ -3081,6 +3515,14 @@ button {
     width: 100%;
     max-width: 100vw;
     padding: 22px 18px 24px;
+  }
+
+  .shoe-status-stepper {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shoe-status-product__hero {
+    align-items: flex-start;
   }
 
   .menu-button {
@@ -3162,6 +3604,43 @@ button {
     margin-top: 10px;
     font-size: 0.92rem;
     line-height: 1.5;
+  }
+
+  .shoe-status-card__header,
+  .shoe-status-timeline__header {
+    display: grid;
+  }
+
+  .shoe-status-hero {
+    padding: 18px;
+  }
+
+  .shoe-status-hero__headline {
+    font-size: 1.9rem;
+  }
+
+  .shoe-status-stepper {
+    grid-template-columns: 1fr;
+  }
+
+  .shoe-status-product__hero {
+    display: grid;
+    grid-template-columns: 1fr auto;
+  }
+
+  .shoe-status-product__thumbnail {
+    width: 72px;
+    height: 72px;
+  }
+
+  .shoe-status-chip {
+    white-space: normal;
+  }
+
+  .shoe-status-card__body,
+  .shoe-status-timeline {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .eligibility-copy {
