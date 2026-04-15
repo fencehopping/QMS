@@ -1,3 +1,4 @@
+import { renderCgmOrderStatusPage } from "./cgm-order/CgmOrderStatusPage.js";
 import { renderShoeOrderStatusPage } from "./shoe-order/ShoeOrderStatusPage.js";
 
 const patientRoutes = {
@@ -30,6 +31,12 @@ const patientRoutes = {
     title: "Shoe Order Status",
     footer: "Shoe Order Status",
     subtitle: "Track your order, see what happens next, and know who is helping you at each step.",
+  },
+  "cgm-order-test": {
+    label: "CGM Order Status",
+    title: "CGM Order Status",
+    footer: "CGM Order Status",
+    subtitle: "Track your CGM order, upcoming education, shipment timing, and the team supporting your setup.",
   },
   aob: {
     label: "AOB Form",
@@ -244,6 +251,7 @@ const iconMap = {
   profile: fontAwesomeIcon("fa-user"),
   "profile-api-test": fontAwesomeIcon("fa-vial"),
   "shoe-order-test": fontAwesomeIcon("fa-shoe-prints"),
+  "cgm-order-test": fontAwesomeIcon("fa-wave-square"),
   aob: documentIcon(),
   orders: fontAwesomeIcon("fa-cart-shopping"),
   records: orderIcon(),
@@ -259,6 +267,7 @@ const views = {
   profile: renderProfile,
   "profile-api-test": renderProfileApiTest,
   "shoe-order-test": () => renderShoeOrderStatusPage(),
+  "cgm-order-test": () => renderCgmOrderStatusPage(),
   aob: renderAob,
   orders: renderOrders,
   records: renderPlaceholder,
@@ -2353,7 +2362,7 @@ function getRoutes() {
 function getPortalNavRoutes() {
   return currentPortal === "fitter"
     ? ["home", "signout"]
-    : ["profile", "profile-api-test", "shoe-order-test", "orders", "support", "security", "signout"];
+    : ["profile", "profile-api-test", "shoe-order-test", "cgm-order-test", "orders", "support", "security", "signout"];
 }
 
 function getDefaultRoute() {

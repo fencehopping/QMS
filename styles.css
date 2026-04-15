@@ -3380,10 +3380,77 @@ button {
   object-position: center;
 }
 
+.shoe-status-product__hero--cgm {
+  align-items: stretch;
+}
+
+.shoe-status-device-badge {
+  display: grid;
+  place-items: center;
+  min-width: 104px;
+  min-height: 92px;
+  padding: 14px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(130, 186, 255, 0.34), transparent 46%),
+    linear-gradient(180deg, rgba(226, 239, 255, 0.96), rgba(214, 229, 246, 0.92));
+  border: 1px solid rgba(153, 182, 214, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74);
+  text-align: center;
+}
+
+.shoe-status-device-badge span {
+  color: #163a55;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+
 .shoe-status-subsection {
   display: grid;
   gap: 10px;
   padding-top: 4px;
+}
+
+.shoe-status-supply-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.shoe-status-supply-item {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(169, 185, 204, 0.2);
+  background: rgba(247, 250, 254, 0.92);
+}
+
+.shoe-status-supply-item__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.shoe-status-supply-item__title,
+.shoe-status-supply-item__meta {
+  margin: 0;
+}
+
+.shoe-status-supply-item__title {
+  color: #122234;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.shoe-status-supply-item__meta {
+  color: #5e7388;
+  font-size: 0.84rem;
+  line-height: 1.5;
 }
 
 .shoe-status-timeline {
@@ -3523,6 +3590,10 @@ button {
 
   .shoe-status-product__hero {
     align-items: flex-start;
+  }
+
+  .shoe-status-supply-list {
+    grid-template-columns: 1fr;
   }
 
   .menu-button {
@@ -4191,7 +4262,7 @@ button {
     bottom: 12px;
     z-index: 45;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 8px;
     padding: 8px;
     border: 1px solid rgba(255, 255, 255, 0.65);
