@@ -2001,7 +2001,11 @@ function summaryBox(label, value) {
 function openModal(target) {
   if (target === "insurance" || target === "onboarding-insurance") {
     if (activeModalTarget !== "insurance" && activeModalTarget !== "onboarding-insurance") {
-      initializeInsuranceEditState(profileState.insurance.primaryPayer);
+      if (target === "onboarding-insurance") {
+        initializeInsuranceEditState("");
+      } else {
+        initializeInsuranceEditState(profileState.insurance.primaryPayer);
+      }
     }
     if (!insuranceProviderState.loaded && !insuranceProviderState.loading) {
       void loadInsuranceProviders();
