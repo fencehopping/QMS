@@ -2540,7 +2540,7 @@ function startOnboardingProcessing() {
 function initializeInsuranceEditState(providerName = "") {
   const submittedProvider = String(providerName || "").trim();
   insuranceEditState.providerInput = submittedProvider;
-  insuranceEditState.manualEntry = insuranceProviderState.loaded
+  insuranceEditState.manualEntry = insuranceProviderState.loaded && submittedProvider.length > 0
     ? !Boolean(resolveInsuranceProviderName(submittedProvider))
     : false;
   insuranceEditState.error = "";
@@ -2758,11 +2758,17 @@ function validateOnboardingInsuranceSubmission(formData) {
 }
 
 function renderInsuranceProviderSuggestions() {
-  if (insuranceEditState.manualEntry || !insuranceProviderState.loaded || !insuranceEditState.isSuggestionOpen) {
+  if (insuranceEditState.manualEntry || !insuranceEditState.isSuggestionOpen) {
     return "";
   }
   if (!insuranceEditState.providerInput.trim()) {
     return "";
+  }
+  if (insuranceProviderState.loading) {
+    return '<p class="insurance-provider-picker__empty">Loading providers...</p>';
+  }
+  if (!insuranceProviderState.loaded) {
+    return '<p class="insurance-provider-picker__empty">Provider list is unavailable. You can still enter a provider name.</p>';
   }
 
   const suggestions = getInsuranceProviderSuggestions(insuranceEditState.providerInput);
@@ -2802,7 +2808,7 @@ function getInsuranceProviderSuggestions(query) {
     }
   }
 
-  return [...startsWith, ...contains].slice(0, 8);
+  return [...startsWith, ...contains].slice(0, 40);
 }
 
 function refreshInsuranceAutocompleteUi() {
