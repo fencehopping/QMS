@@ -2485,7 +2485,7 @@ function renderOnboardingInsuranceStep() {
                 type="text"
                 name="primaryPayer"
                 value="${escapeAttribute(providerValue)}"
-                placeholder="Search Providers"
+                placeholder="Enter Provider"
                 autocomplete="off"
                 data-insurance-provider-input
               />
@@ -2498,7 +2498,13 @@ function renderOnboardingInsuranceStep() {
         </div>
         <label class="onboarding-modal__field">
           <span class="onboarding-modal__label">Policy #</span>
-          <input class="onboarding-modal__input" type="text" name="policyNumber" value="${escapeAttribute(policyValue)}" />
+          <input
+            class="onboarding-modal__input"
+            type="text"
+            name="policyNumber"
+            value="${escapeAttribute(policyValue)}"
+            placeholder="Enter Policy Number"
+          />
         </label>
       </div>
       ${insuranceEditState.error ? `<p class="onboarding-modal__error">${insuranceEditState.error}</p>` : ""}
@@ -2679,8 +2685,8 @@ function renderInsuranceProviderField() {
     : insuranceProviderState.loading
       ? "Loading the provider list..."
       : insuranceProviderState.error
-        ? "The provider list is unavailable right now. You can enter it manually."
-        : "Search the provider list, then select the closest match.";
+        ? "The provider list is unavailable right now. You can still enter the provider name."
+        : "Start typing to search providers, or enter the provider name manually.";
   const toggleLabel = insuranceEditState.manualEntry ? "Use provider list instead" : "Can't find it? Enter manually";
   const toggleMode = insuranceEditState.manualEntry ? "list" : "manual";
   const suggestionsMarkup = renderInsuranceProviderSuggestions();
@@ -2694,6 +2700,7 @@ function renderInsuranceProviderField() {
           type="text"
           name="primaryPayer"
           value="${escapeAttribute(providerValue)}"
+          placeholder="Enter Provider"
           autocomplete="off"
           data-insurance-provider-input
         />
@@ -2717,12 +2724,7 @@ function validateInsuranceModalSubmission(formData) {
   insuranceEditState.error = "";
 
   if (!submittedProvider) {
-    insuranceEditState.error = "Enter the insurance provider or choose it from the list.";
-    return false;
-  }
-
-  if (!insuranceEditState.manualEntry && !resolveInsuranceProviderName(submittedProvider)) {
-    insuranceEditState.error = "Choose a provider from the list, or switch to manual entry if it is not listed.";
+    insuranceEditState.error = "Enter the insurance provider.";
     return false;
   }
 
