@@ -4,7 +4,7 @@ import { renderShoeOrderStatusPage } from "./shoe-order/ShoeOrderStatusPage.js";
 const patientRoutes = {
   home: {
     label: "Home",
-    title: "Welcome Back Nick Holroyd",
+    title: "Welcome Back",
     footer: "Home",
     subtitle: "Review profile progress, eligibility, and the next products available through your portal.",
   },
@@ -131,36 +131,36 @@ const insuranceProviderDataUrl = "./Insurance%20Drop%20Down/insurance_dropdown_f
 
 const profileState = {
   prequalifying: {
-    name: "Nick Holroyd",
-    email: "nick@quantummedicalsupply.com",
-    phone: "512-557-5646",
-    dateOfBirth: "02/25/1982",
+    name: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
   },
   insurance: {
-    primaryPayer: "United Healthcare",
-    providerAccountNumber: "1EG4-TE5-MK73",
-    manualEntry: false,
-    description: "Aetna Medicare Choice (HMO - POS)",
-    insuranceType: "Point of Service (POS)",
-    coordination: "02/01/2020 - Current",
-    inNetworkInitial: "$20 Initial",
-    inNetworkRemaining: "$0 Remaining",
-    outNetworkInitial: "$100 Initial",
-    outNetworkRemaining: "$0 Remaining",
-    coInsuranceIn: "0% In-Network",
-    coInsuranceOut: "20% Out of Network",
-    coPayIn: "$0 In-Network",
-    coPayOut: "$10 Out of Network",
+    primaryPayer: "",
+    providerAccountNumber: "",
+    manualEntry: true,
+    description: "",
+    insuranceType: "",
+    coordination: "",
+    inNetworkInitial: "",
+    inNetworkRemaining: "",
+    outNetworkInitial: "",
+    outNetworkRemaining: "",
+    coInsuranceIn: "",
+    coInsuranceOut: "",
+    coPayIn: "",
+    coPayOut: "",
     hasSecondary: "No",
     secondaryProvider: "",
     secondaryPolicyNumber: "",
   },
   addresses: {
-    billingStreet: "65 Pin Oak Dr",
+    billingStreet: "",
     billingUnit: "",
-    billingCity: "Scituate",
-    billingState: "MA",
-    billingZip: "02066",
+    billingCity: "",
+    billingState: "",
+    billingZip: "",
     shippingStreet: "",
     shippingUnit: "",
     shippingCity: "",
@@ -168,13 +168,13 @@ const profileState = {
     shippingZip: "",
   },
   personal: {
-    name: "Nick Holroyd",
-    dateOfBirth: "02/25/1982",
-    email: "nick@quantummedicalsupply.com",
-    phone: "512-557-5646",
+    name: "",
+    dateOfBirth: "",
+    email: "",
+    phone: "",
   },
   physician: {
-    searchState: "MA",
+    searchState: "",
     searchCity: "",
     searchName: "",
     primary: emptyPhysicianRecord(),
@@ -369,174 +369,6 @@ const catalogSections = [
   },
 ];
 
-const shoeOrderTestResponse = {
-  success: true,
-  message: "Success",
-  data: {
-    orderDetails: {
-      salesPerson: "",
-      physician: "LEOR SKOCZYLAS",
-      fitterInArea: "Sandra Costlow",
-      alternateFitter: "JARED BEDICK / By Road7.64 Miles",
-      fittingAppointmentDate: "2026-02-16T09:00:00",
-      dispensingAppointment: null,
-      priorAuth: "Auth Started",
-      doFollowUp: "Resent D.O.-2026-04-10",
-      patientFollowUp: "Mailed DO-2026-04-10",
-      doDetails: {
-        product: "Diabetic Shoes",
-        dateDispensed: null,
-        insertType: "A5514 - Custom Molded Inserts- CAD-CAM",
-        toeFiller: "No Filler",
-        diagnosis1: "",
-        rxSignatureDate: "2026-01-29T00:00:00",
-        rxExpirationDate: "2026-07-29T00:00:00",
-        cmnSignatureDate: "2026-01-30T00:00:00",
-        cmnExpirationDate: "2026-04-30T00:00:00",
-        accommodations: "",
-      },
-      shoeDetails: {
-        request: 810176,
-        barCode: "190446890195",
-        manufacturer: "DR COMFORT",
-        dealer: "DR. COMFORT",
-        gender: "Male",
-        style: "52180",
-        colour: "GREY",
-        size: "13",
-        width: "WIDE (E/EE)",
-        closureType: "Elastic Lace",
-        arrivalDate: "2026-04-10T06:51:35",
-        insoles: "Custom Molded",
-        description: "Finch Grey Elastic Lace",
-        secondChoice: "Manufacturer: DR COMFORT-Style:52050-Color:BLUE-ClosureType: Elastic Lace-Size:13-Width:WIDE (E/EE)",
-      },
-      txnHistory: [
-        {
-          date: "01/28/2026",
-          time: "10:10:11 AM",
-          status: "CREATED D.O.",
-          createdBy: "MARKETTA WILSON",
-          misc: "",
-        },
-        {
-          date: "01/28/2026",
-          time: "10:30:38 AM",
-          status: "FAX IN QUE TO SEND",
-          createdBy: "MARKETTA WILSON",
-          misc: "Sending",
-        },
-        {
-          date: "01/30/2026",
-          time: "9:11:25 AM",
-          status: "INCOMPLETE D.O",
-          createdBy: "JOHNNA DURBIN",
-          misc: "Needs to complete Steps 1-3 on CMN.",
-        },
-        {
-          date: "01/30/2026",
-          time: "11:17:46 AM",
-          status: "CREATED D.O Incomplete",
-          createdBy: "MAGALYS PEREZ",
-          misc: "",
-        },
-        {
-          date: "02/03/2026",
-          time: "2:44:15 PM",
-          status: "USEABLE",
-          createdBy: "ELSIE SANTIAGO",
-          misc: "",
-        },
-        {
-          date: "02/03/2026",
-          time: "2:44:15 PM",
-          status: "INCOMPLETE D.O MARKED AS COMPLETED",
-          createdBy: "ELSIE SANTIAGO",
-          misc: "",
-        },
-        {
-          date: "02/03/2026",
-          time: "2:44:15 PM",
-          status: "D.O. FILLED",
-          createdBy: "ELSIE SANTIAGO",
-          misc: "",
-        },
-        {
-          date: "02/04/2026",
-          time: "7:55:50 AM",
-          status: "SHOE FITTER ASSIGNED",
-          createdBy: "Sandra Costlow",
-          misc: "null Fitter :Sandra Costlow",
-        },
-        {
-          date: "02/16/2026",
-          time: "11:03:17 AM",
-          status: "FITTER DOCUMENT SIGNED",
-          createdBy: "MARCELO PINHEIRO",
-          misc: "<a target='_blank' href='../Handlers/fileDownloadHandler.ashx?filePath=D:\\MYDMEDeployment\\Files\\custom_inpersonForm\\668981_349253.pdf'>Document</a>",
-        },
-        {
-          date: "04/10/2026",
-          time: "9:30:23 AM",
-          status: "CREATED REVISE D.O",
-          createdBy: "MARC VETRANO",
-          misc: "test , Reason: Expired DO <a href='/DME/ReviseDOFormPdf?personId=668981&categoryNo=1&yhpId=0&productId=1&doId=349253'>View Revise DO</a>",
-        },
-        {
-          date: "02/16/2026",
-          time: "1:54:46 PM",
-          status: "REQUESTED",
-          createdBy: "Sandra Costlow",
-          misc: "PoNo # 429548 ",
-        },
-        {
-          date: "02/16/2026",
-          time: "1:54:46 PM",
-          status: "3D SCANNED LINKED TO ORDER",
-          createdBy: "Sandra Costlow",
-          misc: "<a href='/PatientManagement/DownloadUploadedDocument?fileName=D:\\MyDmeDeployment\\Files\\uploads3d\\219093_Marc_Brawer.zip'>View Scans</a> <a href='/PatientManagement/DownloadUploadedDocument?fileName=D:\\MYDMEDeployment\\Files\\3DScan_219093_MARC_BRAWER_349253.pdf'>Order Form</a>",
-        },
-        {
-          date: "02/16/2026",
-          time: "1:54:46 PM",
-          status: "ORDERED",
-          createdBy: "Sandra Costlow",
-          misc: "",
-        },
-        {
-          date: "02/19/2026",
-          time: "1:32:07 PM",
-          status: "ORDER CONFIRMED BY MANUFACTURER",
-          createdBy: "WILLIAM VANEGAS",
-          misc: "15161438",
-        },
-        {
-          date: "04/10/2026",
-          time: "6:51:35 AM",
-          status: "RESERVED",
-          createdBy: "Sandra Costlow",
-          misc: "<a href='/TestingSupplies/TSPOD?personId=SO1oz9a7gMw=&doId=349253&categoryNo=1&requestId=810176' target='_blank'>View POD</a>",
-        },
-      ],
-    },
-  },
-  statusCode: 200,
-};
-
-const fitterPatients = [
-  ["80046", "BRETT", "SCHISSLER", "04/01/1980", "CGM", "Canceled", "", "", ""],
-  ["87648", "GARY", "RESNICK", "04/19/1939", "CGM", "Canceled", "", "", ""],
-  ["95219", "KATHERINE", "BIDDIX", "09/08/1959", "CGM", "Canceled", "", "", ""],
-  ["100762", "SANDFORD", "GADIENT", "02/07/1936", "CGM", "Insurance Verified", "03/17/2026", "06/15/2026", "1Z2159X70293026505"],
-  ["100847", "FRANK", "IOVINE", "06/29/1942", "CGM", "Insurance Verified", "03/18/2026", "06/16/2026", "1Z2159X70291832290"],
-  ["99341", "TED", "LEVINE", "01/31/1953", "CGM", "Insurance Verified", "02/26/2026", "05/27/2026", "1Z2159X70290458358"],
-  ["102185", "RONALD", "KAPLAN", "02/04/1942", "CGM", "Insurance Verified", "03/15/2026", "06/13/2026", ""],
-  ["102626", "LARRY", "PALMER JR", "11/23/1973", "CGM", "Insurance Verified", "01/25/2026", "02/24/2026", "1Z2159X70291297075"],
-  ["102935", "MIGUEL", "BRITO", "12/29/1984", "CGM", "Insurance Verified", "03/07/2026", "04/06/2026", "1Z2159X70294271211"],
-  ["101345", "PRISCILLA", "ASHLEY", "05/26/1951", "CGM", "Insurance Verified", "03/11/2026", "06/09/2026", "1Z2159X70211457686"],
-  ["102855", "BEN", "WEINSTOCK", "08/17/1946", "CGM", "Insurance Verified", "03/19/2026", "06/17/2026", "1Z2159X70296030147"],
-];
-
 const fitterColumns = [
   { key: "id", label: "ID" },
   { key: "firstName", label: "Patient First" },
@@ -633,9 +465,10 @@ function initNav() {
   document.addEventListener("input", (event) => {
     if (!(event.target instanceof HTMLInputElement)) return;
     if (!event.target.matches("[data-insurance-provider-input]")) return;
-    insuranceEditState.providerInput = event.target.value;
+    const typedValue = event.target.value;
+    insuranceEditState.providerInput = typedValue;
     insuranceEditState.error = "";
-    insuranceEditState.isSuggestionOpen = true;
+    insuranceEditState.isSuggestionOpen = !insuranceEditState.manualEntry && typedValue.trim().length > 0;
     refreshInsuranceAutocompleteUi();
   });
 
@@ -653,8 +486,7 @@ function initNav() {
   document.addEventListener("focusin", (event) => {
     if (!(event.target instanceof HTMLInputElement)) return;
     if (!event.target.matches("[data-insurance-provider-input]")) return;
-    if (insuranceEditState.manualEntry) return;
-    insuranceEditState.isSuggestionOpen = true;
+    insuranceEditState.isSuggestionOpen = false;
     refreshInsuranceAutocompleteUi();
   });
 
@@ -699,7 +531,7 @@ function initNav() {
       } else if (choice === "private") {
         initializeInsuranceEditState(profileState.insurance.primaryPayer === "Medicare" ? "" : profileState.insurance.primaryPayer);
         insuranceEditState.manualEntry = false;
-        insuranceEditState.isSuggestionOpen = true;
+        insuranceEditState.isSuggestionOpen = false;
         openModal("onboarding-insurance");
       } else if (choice === "cash") {
         window.location.href = "https://shop.quantummedicalsupply.com";
@@ -1009,21 +841,40 @@ function renderFitterDashboard() {
 }
 
 function getSortedFitterPatients() {
-  const rows = fitterPatients.map(([id, firstName, lastName, dob, model, status, lastShipment, nextShipment, tracking]) => ({
-    id,
-    firstName,
-    lastName,
-    dob,
-    model,
-    status,
-    lastShipment,
-    nextShipment,
-    tracking,
-  }));
+  const rows = buildFitterPatients();
 
   const direction = fitterDashboardState.sortDirection === "asc" ? 1 : -1;
   rows.sort((left, right) => compareFitterValues(left, right, fitterDashboardState.sortField) * direction);
   return rows;
+}
+
+function buildFitterPatients() {
+  const patient = getSoftgaitPatientData();
+  if (!patient) {
+    return [{
+      id: softgaitFixedPatientId,
+      firstName: "",
+      lastName: "",
+      dob: "",
+      model: "",
+      status: "",
+      lastShipment: "",
+      nextShipment: "",
+      tracking: "",
+    }];
+  }
+
+  return [{
+    id: String(patient.personId || softgaitFixedPatientId),
+    firstName: titleCaseSoftgaitValue(patient.firstName),
+    lastName: titleCaseSoftgaitValue(patient.lastName),
+    dob: formatSoftgaitDateForInput(patient.dateofBirth),
+    model: "",
+    status: "",
+    lastShipment: "",
+    nextShipment: "",
+    tracking: "",
+  }];
 }
 
 function compareFitterValues(left, right, field) {
@@ -1045,6 +896,161 @@ function compareDates(left, right) {
   if (leftTime === null) return 1;
   if (rightTime === null) return -1;
   return leftTime - rightTime;
+}
+
+function getFixedSoftgaitResponse() {
+  return String(softgaitApiState.response?.personId || "") === softgaitFixedPatientId
+    ? softgaitApiState.response
+    : null;
+}
+
+function getSoftgaitSectionData(sectionKey) {
+  return getFixedSoftgaitResponse()?.sections?.[sectionKey]?.data ?? null;
+}
+
+function getSoftgaitPatientData() {
+  return getSoftgaitSectionData("patient");
+}
+
+function getSoftgaitPortalUsername() {
+  return normalizeDisplayText(getSoftgaitPatientData()?.portalUsername);
+}
+
+function getPatientDisplayName() {
+  const fullName = normalizeDisplayText(profileState.personal.name);
+  if (fullName) return fullName;
+  return `Patient ${softgaitFixedPatientId}`;
+}
+
+function normalizeDisplayText(value) {
+  return String(value ?? "").trim();
+}
+
+function titleCaseSoftgaitValue(value) {
+  return normalizeDisplayText(value)
+    .toLowerCase()
+    .replace(/\b([a-z])/g, (match) => match.toUpperCase());
+}
+
+function buildPatientFullName(firstName, lastName) {
+  const pieces = [titleCaseSoftgaitValue(firstName), titleCaseSoftgaitValue(lastName)].filter(Boolean);
+  return pieces.join(" ");
+}
+
+function formatSoftgaitDateForInput(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return normalizeDisplayText(value);
+  return date.toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
+
+function normalizeSoftgaitAddressData(value) {
+  if (!value || typeof value !== "object") {
+    return {
+      address: "",
+      address2: "",
+      city: "",
+      state: "",
+      zip: "",
+      type: "",
+      isPrimary: "",
+      from: "",
+      to: "",
+      temporaryAddress: null,
+    };
+  }
+
+  return {
+    address: normalizeDisplayText(value.address || value.addressLine1 || value.Address),
+    address2: normalizeDisplayText(value.address2 || value.addressLine2 || value.Address2),
+    city: normalizeDisplayText(value.city || value.City),
+    state: normalizeDisplayText(value.state || value.State),
+    zip: normalizeDisplayText(value.zip || value.zipCode || value.Zip),
+    type: normalizeDisplayText(value.type || value.addressType || value.AddressType),
+    isPrimary: value.isPrimary ?? value.IsPrimary ?? "",
+    from: normalizeDisplayText(value.from || value.From),
+    to: normalizeDisplayText(value.to || value.To),
+    temporaryAddress: value.temporaryAddress || value.TemporaryAddress || null,
+  };
+}
+
+function applySoftgaitPatientSummaryToSite(summary) {
+  if (!summary || String(summary.personId || "") !== softgaitFixedPatientId) return;
+
+  const patient = summary.sections?.patient?.data || {};
+  const insurances = Array.isArray(summary.sections?.insurances?.data) ? summary.sections.insurances.data : [];
+  const physicians = Array.isArray(summary.sections?.physicians?.data) ? summary.sections.physicians.data : [];
+  const address = normalizeSoftgaitAddressData(summary.sections?.addresses?.data);
+  const temporaryAddress = normalizeSoftgaitAddressData(address.temporaryAddress);
+  const primaryInsurance = insurances[0] || {};
+  const secondaryInsurance = insurances[1] || {};
+  const primaryPhysician = physicians[0] || {};
+
+  const fullName = buildPatientFullName(patient.firstName, patient.lastName);
+  const dateOfBirth = formatSoftgaitDateForInput(patient.dateofBirth);
+
+  profileState.prequalifying.name = fullName;
+  profileState.prequalifying.email = normalizeDisplayText(patient.email);
+  profileState.prequalifying.phone = normalizeDisplayText(patient.phone || patient.cellPhone);
+  profileState.prequalifying.dateOfBirth = dateOfBirth;
+
+  profileState.personal.name = fullName;
+  profileState.personal.dateOfBirth = dateOfBirth;
+  profileState.personal.email = normalizeDisplayText(patient.email);
+  profileState.personal.phone = normalizeDisplayText(patient.phone || patient.cellPhone);
+
+  profileState.insurance.primaryPayer = normalizeDisplayText(primaryInsurance.name);
+  profileState.insurance.providerAccountNumber = normalizeDisplayText(primaryInsurance.policy);
+  profileState.insurance.manualEntry = true;
+  profileState.insurance.description = normalizeDisplayText(primaryInsurance.type);
+  profileState.insurance.insuranceType = "";
+  profileState.insurance.coordination = "";
+  profileState.insurance.inNetworkInitial = "";
+  profileState.insurance.inNetworkRemaining = "";
+  profileState.insurance.outNetworkInitial = "";
+  profileState.insurance.outNetworkRemaining = "";
+  profileState.insurance.coInsuranceIn = "";
+  profileState.insurance.coInsuranceOut = "";
+  profileState.insurance.coPayIn = "";
+  profileState.insurance.coPayOut = "";
+  profileState.insurance.hasSecondary = secondaryInsurance.name ? "Yes" : "No";
+  profileState.insurance.secondaryProvider = normalizeDisplayText(secondaryInsurance.name);
+  profileState.insurance.secondaryPolicyNumber = normalizeDisplayText(secondaryInsurance.policy);
+
+  profileState.addresses.billingStreet = address.address;
+  profileState.addresses.billingUnit = address.address2;
+  profileState.addresses.billingCity = address.city;
+  profileState.addresses.billingState = address.state;
+  profileState.addresses.billingZip = address.zip;
+  profileState.addresses.shippingStreet = temporaryAddress.address;
+  profileState.addresses.shippingUnit = temporaryAddress.address2;
+  profileState.addresses.shippingCity = temporaryAddress.city;
+  profileState.addresses.shippingState = temporaryAddress.state;
+  profileState.addresses.shippingZip = temporaryAddress.zip;
+
+  profileState.physician.searchState = normalizeDisplayText(primaryPhysician.state || address.state);
+  profileState.physician.searchCity = normalizeDisplayText(primaryPhysician.city);
+  profileState.physician.searchName = normalizeDisplayText(primaryPhysician.name);
+  setPhysicianRecord("primary", {
+    npi: normalizeDisplayText(primaryPhysician.npi),
+    firstName: "",
+    lastName: normalizeDisplayText(primaryPhysician.name),
+    address1: normalizeDisplayText(primaryPhysician.address),
+    address2: "",
+    city: normalizeDisplayText(primaryPhysician.city),
+    state: normalizeDisplayText(primaryPhysician.state),
+    zipCode: normalizeDisplayText(primaryPhysician.zip),
+    phoneNumber: normalizeDisplayText(primaryPhysician.phone),
+    faxNumber: normalizeDisplayText(primaryPhysician.fax),
+    locationId: "",
+    locations: [],
+  });
+  setPhysicianRecord("secondary", emptyPhysicianRecord());
+  initializeInsuranceEditState(profileState.insurance.primaryPayer);
 }
 
 function parseUsDate(value) {
@@ -1217,134 +1223,6 @@ function renderProfileApiTest() {
   `;
 }
 
-function renderShoeOrderApiTest() {
-  const response = shoeOrderTestResponse;
-  const order = response?.data?.orderDetails;
-
-  if (!response?.success || !order) {
-    return `
-      <div class="stack">
-        <section class="card surface-card patient-api-card">
-          <div class="surface-card__header patient-api-card__header">
-            <div>
-              <p class="patient-api-card__eyebrow">API Test Record</p>
-              <h2>Shoe Order</h2>
-            </div>
-            <span class="patient-api-card__badge patient-api-card__badge--muted">Unavailable</span>
-          </div>
-          <div class="patient-api-card__content">
-            <div class="patient-api-empty-state">
-              <p>${escapeHtml(response?.message || "No shoe order data returned.")}</p>
-            </div>
-          </div>
-        </section>
-      </div>
-    `;
-  }
-
-  const doDetails = order.doDetails || {};
-  const shoeDetails = order.shoeDetails || {};
-  const timelineEntries = sortShoeOrderTransactions(order.txnHistory);
-  const latestEntry = timelineEntries[timelineEntries.length - 1] || null;
-  const secondChoiceFields = getShoeOrderSecondChoiceFields(shoeDetails.secondChoice);
-  const metaPills = [
-    shoeDetails.request ? renderSoftgaitMetaPill(`Request #${shoeDetails.request}`) : "",
-    latestEntry?.status ? renderSoftgaitMetaPill(`Latest: ${latestEntry.status}`) : "",
-    order.priorAuth ? renderSoftgaitMetaPill(`Prior Auth: ${order.priorAuth}`) : "",
-    order.fittingAppointmentDate ? renderSoftgaitMetaPill(`Fitting: ${formatSoftgaitDateTime(order.fittingAppointmentDate)}`) : "",
-    shoeDetails.arrivalDate ? renderSoftgaitMetaPill(`Arrival: ${formatSoftgaitDateTime(shoeDetails.arrivalDate)}`) : "",
-  ].filter(Boolean).join("");
-
-  return `
-    <div class="stack">
-      <section class="card surface-card patient-api-card shoe-order-test-card">
-        <div class="surface-card__header patient-api-card__header">
-          <div>
-            <p class="patient-api-card__eyebrow">API Test Record</p>
-            <h2>${escapeHtml(doDetails.product || "Shoe Order")}</h2>
-          </div>
-          <span class="patient-api-card__badge shoe-order-status-badge ${getShoeOrderStatusBadgeClass(latestEntry?.status)}">${escapeHtml(latestEntry?.status || "No status yet")}</span>
-        </div>
-        <div class="patient-api-card__content shoe-order-test-card__content">
-          <section class="shoe-order-hero">
-            <div class="shoe-order-hero__copy">
-              <p class="patient-api-card__summary">This test page renders the sample shoe-order JSON as a patient-friendly card view, with paperwork checkpoints, product details, and a full transaction timeline.</p>
-              <div class="patient-api-meta-row">${metaPills}</div>
-              <div class="shoe-order-overview">
-                ${renderShoeOrderHighlight("Physician", formatSoftgaitText(order.physician))}
-                ${renderShoeOrderHighlight("Fitter In Area", formatSoftgaitText(order.fitterInArea))}
-                ${renderShoeOrderHighlight("Selected Shoe", formatSoftgaitText(shoeDetails.description))}
-                ${renderShoeOrderHighlight("Arrival", formatSoftgaitDate(shoeDetails.arrivalDate))}
-              </div>
-            </div>
-            <div class="shoe-order-hero__media">
-              <img src="./images/shoes.jpg" alt="Therapeutic shoe preview" />
-              <div class="shoe-order-hero__caption">
-                <span>${escapeHtml(shoeDetails.manufacturer || "Manufacturer pending")}</span>
-                <strong>${escapeHtml([shoeDetails.style, shoeDetails.colour].filter(Boolean).join(" / ") || "Style pending")}</strong>
-              </div>
-            </div>
-          </section>
-
-          <div class="shoe-order-sections">
-            ${renderShoeOrderSectionCard("Order Routing", [
-              ["Sales Person", formatSoftgaitText(order.salesPerson)],
-              ["Physician", formatSoftgaitText(order.physician)],
-              ["Fitter In Area", formatSoftgaitText(order.fitterInArea)],
-              ["Alternate Fitter", formatSoftgaitText(order.alternateFitter)],
-              ["Fitting Appointment", formatSoftgaitDate(order.fittingAppointmentDate)],
-              ["Dispensing Appointment", formatSoftgaitDate(order.dispensingAppointment)],
-              ["Prior Auth", formatSoftgaitText(order.priorAuth)],
-              ["D.O. Follow Up", formatSoftgaitText(order.doFollowUp)],
-              ["Patient Follow Up", formatSoftgaitText(order.patientFollowUp)],
-            ])}
-
-            ${renderShoeOrderSectionCard("Documentation", [
-              ["Product", formatSoftgaitText(doDetails.product)],
-              ["Insert Type", formatSoftgaitText(doDetails.insertType)],
-              ["Toe Filler", formatSoftgaitText(doDetails.toeFiller)],
-              ["Date Dispensed", formatSoftgaitDate(doDetails.dateDispensed)],
-              ["RX Signature Date", formatSoftgaitDate(doDetails.rxSignatureDate)],
-              ["RX Expiration", formatSoftgaitDate(doDetails.rxExpirationDate)],
-              ["CMN Signature Date", formatSoftgaitDate(doDetails.cmnSignatureDate)],
-              ["CMN Expiration", formatSoftgaitDate(doDetails.cmnExpirationDate)],
-              ["Diagnosis", formatSoftgaitText(doDetails.diagnosis1)],
-              ["Accommodations", formatSoftgaitText(doDetails.accommodations)],
-            ])}
-
-            ${renderShoeOrderSectionCard("Shoe Selection", [
-              ["Request", formatSoftgaitText(shoeDetails.request)],
-              ["Barcode", formatSoftgaitText(shoeDetails.barCode)],
-              ["Manufacturer", formatSoftgaitText(shoeDetails.manufacturer)],
-              ["Dealer", formatSoftgaitText(shoeDetails.dealer)],
-              ["Gender", formatSoftgaitText(shoeDetails.gender)],
-              ["Style", formatSoftgaitText(shoeDetails.style)],
-              ["Colour", formatSoftgaitText(shoeDetails.colour)],
-              ["Size", formatSoftgaitText(shoeDetails.size)],
-              ["Width", formatSoftgaitText(shoeDetails.width)],
-              ["Closure Type", formatSoftgaitText(shoeDetails.closureType)],
-              ["Insoles", formatSoftgaitText(shoeDetails.insoles)],
-              ["Description", formatSoftgaitText(shoeDetails.description)],
-              ["Arrival Date", formatSoftgaitDate(shoeDetails.arrivalDate)],
-              ...secondChoiceFields,
-            ])}
-          </div>
-        </div>
-      </section>
-
-      <section class="card surface-card shoe-order-timeline-card">
-        <div class="surface-card__header patient-api-section__header">
-          <span>Transaction History</span>
-          <span class="patient-api-section__badge is-success">${timelineEntries.length} Events</span>
-        </div>
-        <div class="shoe-order-timeline">
-          ${timelineEntries.map((entry, index) => renderShoeOrderTimelineEntry(entry, index === timelineEntries.length - 1)).join("")}
-        </div>
-      </section>
-    </div>
-  `;
-}
-
 function renderSoftgaitConfigSummary() {
   if (!softgaitApiState.config.loaded) {
     return '<p class="patient-api-feedback">Checking local Softgait proxy configuration...</p>';
@@ -1422,7 +1300,7 @@ function renderSoftgaitPatientSection(wrapper) {
       ["Portal Username", formatSoftgaitText(wrapper.data.portalUsername)],
       ["HIPAA Consent", formatSoftgaitText(wrapper.data.hipaaConsent)],
       ["AOB", formatSoftgaitText(wrapper.data.aob)],
-      ["Fitter in Area", formatSoftgaitText(wrapper.data.fitterinarea)],
+      ["Fitter in Area", formatSoftgaitText(wrapper.data.fitterInArea || wrapper.data.fitterinarea)],
     ]),
   );
 }
@@ -1507,7 +1385,7 @@ function renderSoftgaitCaregiverSection(wrapper) {
       ["Last Name", formatSoftgaitText(wrapper.data.lastName)],
       ["Phone", formatSoftgaitText(wrapper.data.phone)],
       ["Email", formatSoftgaitText(wrapper.data.email)],
-      ["Relationship", formatSoftgaitText(wrapper.data.relationship)],
+      ["Relationship", formatSoftgaitText(wrapper.data.relationship || wrapper.data.relation)],
     ]),
   );
 }
@@ -1517,30 +1395,31 @@ function renderSoftgaitAddressSection(wrapper) {
     return renderSoftgaitSectionCard("Addresses", wrapper);
   }
 
-  const temporaryAddress = wrapper.data.TemporaryAddress || {};
+  const address = normalizeSoftgaitAddressData(wrapper.data);
+  const temporaryAddress = normalizeSoftgaitAddressData(address.temporaryAddress || {});
 
   return renderSoftgaitSectionCard(
     "Addresses",
     wrapper,
     [
       renderSoftgaitRecord("Primary Address", [
-        ["Address Line 1", formatSoftgaitText(wrapper.data.addressLine1)],
-        ["Address Line 2", formatSoftgaitText(wrapper.data.addressLine2)],
-        ["City", formatSoftgaitText(wrapper.data.city)],
-        ["State", formatSoftgaitText(wrapper.data.state)],
-        ["Zip Code", formatSoftgaitText(wrapper.data.zipCode)],
-        ["Type", formatSoftgaitText(wrapper.data.type)],
-        ["Is Primary", formatSoftgaitBoolean(wrapper.data.isPrimary)],
+        ["Address Line 1", formatSoftgaitText(address.address)],
+        ["Address Line 2", formatSoftgaitText(address.address2)],
+        ["City", formatSoftgaitText(address.city)],
+        ["State", formatSoftgaitText(address.state)],
+        ["Zip Code", formatSoftgaitText(address.zip)],
+        ["Type", formatSoftgaitText(address.type)],
+        ["Is Primary", formatSoftgaitBoolean(address.isPrimary)],
       ]),
       renderSoftgaitRecord("Temporary Address", [
-        ["Address", formatSoftgaitText(temporaryAddress.Address)],
-        ["Address 2", formatSoftgaitText(temporaryAddress.Address2)],
-        ["City", formatSoftgaitText(temporaryAddress.City)],
-        ["State", formatSoftgaitText(temporaryAddress.State)],
-        ["Zip", formatSoftgaitText(temporaryAddress.Zip)],
-        ["Address Type", formatSoftgaitText(temporaryAddress.AddressType)],
-        ["From", formatSoftgaitText(temporaryAddress.From)],
-        ["To", formatSoftgaitText(temporaryAddress.To)],
+        ["Address", formatSoftgaitText(temporaryAddress.address)],
+        ["Address 2", formatSoftgaitText(temporaryAddress.address2)],
+        ["City", formatSoftgaitText(temporaryAddress.city)],
+        ["State", formatSoftgaitText(temporaryAddress.state)],
+        ["Zip", formatSoftgaitText(temporaryAddress.zip)],
+        ["Address Type", formatSoftgaitText(temporaryAddress.type)],
+        ["From", formatSoftgaitText(temporaryAddress.from)],
+        ["To", formatSoftgaitText(temporaryAddress.to)],
       ]),
     ].join(""),
   );
@@ -1753,30 +1632,35 @@ function renderAob() {
 }
 
 function renderOrders() {
+  const patient = getSoftgaitPatientData();
+  const invoicesWrapper = getFixedSoftgaitResponse()?.sections?.invoices;
+  const statusSignals = getFixedSoftgaitResponse()?.statusSignals || { insuranceStatuses: [], invoiceStatuses: [] };
+  const statusPills = [
+    ...statusSignals.insuranceStatuses.map((status) => `Insurance: ${status}`),
+    ...statusSignals.invoiceStatuses.map((status) => `Invoice: ${status}`),
+  ];
+
   return `
     <div class="stack">
       <section class="card surface-card orders-card">
         <div class="surface-card__header">My Orders</div>
         <div class="orders-card__content">
           <article class="orders-product-card orders-product-card--active">
-            <div class="orders-product-card__media">
-              <img src="./images/cgms.png" alt="Dexcom G7 continuous glucose monitor" />
-            </div>
             <div class="orders-product-card__body">
-              <p class="orders-product-card__eyebrow">Continuous Glucose Monitor</p>
+              <p class="orders-product-card__eyebrow">Softgait API</p>
               <div class="orders-product-card__title-row">
-                <h2>Dexcom G7</h2>
-                <span class="orders-status-pill">Waiting on Rx</span>
+                <h2>Patient ${escapeHtml(String(patient?.personId || softgaitFixedPatientId))}</h2>
+                <span class="orders-status-pill">${escapeHtml(statusPills[0] || "No order status available")}</span>
               </div>
-              <p class="orders-product-card__copy">Your CGM order is in progress and is waiting for the prescribing physician to send the required prescription.</p>
+              <p class="orders-product-card__copy">This integration does not expose a dedicated order or shipment status for patient ${escapeHtml(String(patient?.personId || softgaitFixedPatientId))}. The only live status signals available are insurance and invoice statuses.</p>
               <div class="orders-meta">
                 <div>
-                  <span class="orders-meta__label">Order type</span>
-                  <span class="orders-meta__value">Active order</span>
+                  <span class="orders-meta__label">Insurance statuses</span>
+                  <span class="orders-meta__value">${escapeHtml(statusSignals.insuranceStatuses.join(", ") || "None returned")}</span>
                 </div>
                 <div>
-                  <span class="orders-meta__label">Next step</span>
-                  <span class="orders-meta__value">Prescription needed</span>
+                  <span class="orders-meta__label">Invoice statuses</span>
+                  <span class="orders-meta__value">${escapeHtml(statusSignals.invoiceStatuses.join(", ") || "None returned")}</span>
                 </div>
               </div>
             </div>
@@ -1786,223 +1670,55 @@ function renderOrders() {
 
       <section class="orders-qualify-section">
         <div class="orders-qualify-section__header">
-          <h2>Other products you qualify for</h2>
+          <h2>Invoice Data</h2>
         </div>
-        <div class="orders-qualify-grid">
-          <article class="card surface-card orders-product-card">
-            <div class="orders-product-card__media orders-product-card__media--shoes">
-              <img src="./images/shoes.png" alt="Diabetic footwear" />
-            </div>
-            <div class="orders-product-card__body orders-product-card__body--compact">
-              <p class="orders-product-card__eyebrow">Shoes</p>
-              <h3>Diabetic Footwear</h3>
-              <p class="orders-product-card__copy">Start a request to review qualifying styles and begin the documentation process for diabetic shoes.</p>
-              <button class="action-button orders-product-card__action" type="button">Request Product</button>
-            </div>
-          </article>
-          <article class="card surface-card orders-product-card">
-            <div class="orders-product-card__media orders-product-card__media--compression">
-              <img src="./images/compression.png" alt="Compression garments" />
-            </div>
-            <div class="orders-product-card__body orders-product-card__body--compact">
-              <p class="orders-product-card__eyebrow">Compression</p>
-              <h3>Lymphedema</h3>
-              <p class="orders-product-card__copy">Request compression products and have the team verify coverage and the documentation needed to proceed.</p>
-              <button class="action-button orders-product-card__action" type="button">Request Product</button>
-            </div>
-          </article>
-        </div>
+        ${renderInvoiceSummary(invoicesWrapper)}
       </section>
     </div>
   `;
 }
 
-function renderShoeOrderHighlight(label, value) {
-  return `
-    <article class="shoe-order-highlight">
-      <span class="shoe-order-highlight__label">${escapeHtml(label)}</span>
-      <span class="shoe-order-highlight__value">${value}</span>
-    </article>
-  `;
-}
-
-function renderShoeOrderSectionCard(title, fields) {
-  return `
-    <article class="card intake-data-card patient-api-section shoe-order-section">
-      <div class="surface-card__header patient-api-section__header">
-        <span>${escapeHtml(title)}</span>
-      </div>
-      <div class="patient-api-section__body">
-        <div class="intake-data-list">
-          ${fields.map(([label, value], index) => profileField(label, value, index % 2 === 1)).join("")}
+function renderInvoiceSummary(wrapper) {
+  if (!wrapper?.success || !Array.isArray(wrapper.data) || !wrapper.data.length) {
+    return `
+      <article class="card surface-card orders-product-card">
+        <div class="orders-product-card__body orders-product-card__body--compact">
+          <p class="orders-product-card__eyebrow">Invoices</p>
+          <h3>No invoices returned</h3>
+          <p class="orders-product-card__copy">${escapeHtml(wrapper?.message || `No invoices were returned for patient ${softgaitFixedPatientId}.`)}</p>
         </div>
-      </div>
-    </article>
-  `;
-}
+      </article>
+    `;
+  }
 
-function renderShoeOrderTimelineEntry(entry, isLatest = false) {
-  const timestamp = formatShoeOrderTransactionTimestamp(entry);
   return `
-    <article class="shoe-order-timeline__entry${isLatest ? " is-latest" : ""}">
-      <div class="shoe-order-timeline__topline">
-        <div>
-          <p class="shoe-order-timeline__status">${escapeHtml(entry.status || "Status not provided")}</p>
-          <p class="shoe-order-timeline__meta">Created by ${escapeHtml(entry.createdBy || "Unknown")}</p>
-        </div>
-        <span class="shoe-order-timeline__date">${escapeHtml(timestamp)}</span>
-      </div>
-      <div class="shoe-order-timeline__note">${formatShoeOrderTransactionMisc(entry.misc)}</div>
-    </article>
+    <div class="orders-qualify-grid">
+      ${wrapper.data.map((invoice, index) => `
+        <article class="card surface-card orders-product-card">
+          <div class="orders-product-card__body orders-product-card__body--compact">
+            <p class="orders-product-card__eyebrow">Invoice ${index + 1}</p>
+            <h3>${escapeHtml(String(invoice.invoiceNumber || "No invoice number"))}</h3>
+            <p class="orders-product-card__copy">${escapeHtml(String(invoice.description || "No description provided."))}</p>
+            <div class="orders-meta">
+              <div>
+                <span class="orders-meta__label">Status</span>
+                <span class="orders-meta__value">${escapeHtml(String(invoice.status || "Not provided"))}</span>
+              </div>
+              <div>
+                <span class="orders-meta__label">Amount</span>
+                <span class="orders-meta__value">${escapeHtml(formatInvoiceAmount(invoice.amount))}</span>
+              </div>
+            </div>
+          </div>
+        </article>
+      `).join("")}
+    </div>
   `;
 }
 
-function sortShoeOrderTransactions(entries) {
-  if (!Array.isArray(entries)) return [];
-  return [...entries].sort((left, right) => getShoeOrderTransactionTime(left) - getShoeOrderTransactionTime(right));
-}
-
-function getShoeOrderTransactionTime(entry) {
-  const date = parseShoeOrderTransactionDate(entry?.date, entry?.time);
-  return date ? date.getTime() : 0;
-}
-
-function parseShoeOrderTransactionDate(dateValue, timeValue) {
-  const dateMatch = String(dateValue || "").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (!dateMatch) return null;
-
-  let hours = 0;
-  let minutes = 0;
-  let seconds = 0;
-  const timeMatch = String(timeValue || "").trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)$/i);
-
-  if (timeMatch) {
-    hours = Number(timeMatch[1]) % 12;
-    minutes = Number(timeMatch[2]);
-    seconds = Number(timeMatch[3] || 0);
-    if (timeMatch[4].toUpperCase() === "PM") {
-      hours += 12;
-    }
-  }
-
-  return new Date(
-    Number(dateMatch[3]),
-    Number(dateMatch[1]) - 1,
-    Number(dateMatch[2]),
-    hours,
-    minutes,
-    seconds,
-  );
-}
-
-function formatShoeOrderTransactionTimestamp(entry) {
-  const parsed = parseShoeOrderTransactionDate(entry?.date, entry?.time);
-  if (!parsed || Number.isNaN(parsed.getTime())) {
-    return [entry?.date, entry?.time].filter(Boolean).join(" ") || "Date unavailable";
-  }
-
-  return parsed.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-function getShoeOrderSecondChoiceFields(value) {
-  const parsed = parseShoeOrderSecondChoice(value);
-  if (parsed.length) {
-    return parsed.map(([label, fieldValue]) => [`2nd Choice ${label}`, formatSoftgaitText(fieldValue)]);
-  }
-
-  return value ? [["Second Choice", formatSoftgaitText(value)]] : [];
-}
-
-function parseShoeOrderSecondChoice(value) {
-  const raw = String(value || "").trim();
-  if (!raw) return [];
-
-  const pattern = /(Manufacturer|Style|Color|Colour|ClosureType|Size|Width):\s*([^]+?)(?=-(?:Manufacturer|Style|Color|Colour|ClosureType|Size|Width):|$)/g;
-  const matches = [];
-  let match = pattern.exec(raw);
-
-  while (match) {
-    matches.push([normalizeShoeOrderSecondChoiceLabel(match[1]), match[2].trim()]);
-    match = pattern.exec(raw);
-  }
-
-  return matches;
-}
-
-function normalizeShoeOrderSecondChoiceLabel(label) {
-  switch (label) {
-    case "ClosureType":
-      return "Closure Type";
-    case "Color":
-      return "Color";
-    case "Colour":
-      return "Colour";
-    default:
-      return label;
-  }
-}
-
-function getShoeOrderStatusBadgeClass(status) {
-  const normalized = String(status || "").trim().toLowerCase();
-  if (!normalized) return "shoe-order-status-badge--muted";
-  if (normalized.includes("reserved") || normalized.includes("confirmed") || normalized.includes("ordered")) {
-    return "shoe-order-status-badge--success";
-  }
-  if (normalized.includes("incomplete") || normalized.includes("revise")) {
-    return "shoe-order-status-badge--attention";
-  }
-  return "shoe-order-status-badge--muted";
-}
-
-function formatShoeOrderTransactionMisc(value) {
-  const cleaned = String(value || "").replace(/^null\b[:\s-]*/i, "").trim();
-  if (!cleaned) return '<span class="patient-api-empty">No note provided</span>';
-  if (!/[<>]/.test(cleaned)) return escapeHtml(cleaned);
-
-  const parser = new DOMParser();
-  const document = parser.parseFromString(`<div>${cleaned}</div>`, "text/html");
-  const root = document.body.firstElementChild;
-  if (!root) return escapeHtml(cleaned);
-
-  const content = [...root.childNodes].map((node) => renderShoeOrderMiscNode(node)).join("").trim();
-  return content || '<span class="patient-api-empty">No note provided</span>';
-}
-
-function renderShoeOrderMiscNode(node) {
-  if (node.nodeType === Node.TEXT_NODE) {
-    return escapeHtml(node.textContent || "");
-  }
-
-  if (node.nodeType !== Node.ELEMENT_NODE) {
-    return "";
-  }
-
-  if (node.nodeName === "A") {
-    const href = node.getAttribute("href") || "";
-    const label = (node.textContent || href || "Open link").trim();
-    const resolvedHref = resolveShoeOrderHref(href);
-    if (!resolvedHref) return escapeHtml(label);
-    return `<a class="page-header__text-link" href="${escapeAttribute(resolvedHref)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`;
-  }
-
-  return escapeHtml(node.textContent || "");
-}
-
-function resolveShoeOrderHref(href) {
-  const raw = String(href || "").trim();
-  if (!raw) return "";
-
-  try {
-    return new URL(raw, "https://portal.quantummedicalsupply.com/").toString();
-  } catch {
-    return "";
-  }
+function formatInvoiceAmount(value) {
+  if (value === null || value === undefined || value === "") return "Not provided";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(value));
 }
 
 function renderSupport() {
@@ -2024,6 +1740,7 @@ function renderSupport() {
 }
 
 function renderSecurity() {
+  const portalUsername = getSoftgaitPortalUsername() || "Not provided";
   return `
     <div class="stack">
       <section class="security-grid">
@@ -2034,7 +1751,7 @@ function renderSecurity() {
               <span class="detail-item__icon security-card__icon" aria-hidden="true">${profileIcon()}</span>
               <div>
                 <span class="detail-item__label security-card__label">Current Username</span>
-                <span class="detail-item__value security-card__value">QMSSARIAH79884</span>
+                <span class="detail-item__value security-card__value">${escapeHtml(portalUsername)}</span>
               </div>
             </div>
           </div>
@@ -2346,7 +2063,9 @@ function rerenderCurrentRoute() {
 function renderPageChrome(routeKey, route) {
   portalEyebrow.textContent = currentPortal === "fitter" ? "Fitter Portal" : "Patient Portal";
   portalViewSelect.value = currentPortal;
-  pageTitle.textContent = route.title;
+  pageTitle.textContent = currentPortal === "patient" && routeKey === "home"
+    ? `Welcome Back ${getPatientDisplayName()}`
+    : route.title;
   pageSubtitle.innerHTML = currentPortal === "patient" && routeKey === "profile"
     ? `${route.subtitle} <button class="page-header__text-link" data-edit-target="prequalifying" type="button">Edit Prequalifying Questions</button>`
     : route.subtitle;
@@ -2883,14 +2602,11 @@ async function loadSoftgaitConfig() {
       : "Unable to load Softgait proxy configuration.";
   } finally {
     softgaitApiState.config.loaded = true;
-    if (currentRoute === "profile-api-test") {
-      rerenderCurrentRoute();
-    }
+    rerenderCurrentRoute();
   }
 }
 
 function maybeAutoLoadSoftgaitPatient() {
-  if (currentRoute !== "profile-api-test") return;
   if (!softgaitApiState.config.loaded || softgaitApiState.config.error) return;
   if (softgaitApiState.loading) return;
   softgaitApiState.form.personId = softgaitFixedPatientId;
@@ -2943,6 +2659,7 @@ async function fetchSoftgaitPatientSummary() {
     }
 
     softgaitApiState.response = payload.data;
+    applySoftgaitPatientSummaryToSite(payload.data);
     softgaitApiState.error = payload.success ? "" : (payload.message || "Softgait returned no data.");
   } catch (error) {
     softgaitApiState.response = null;
@@ -3019,7 +2736,7 @@ function validateOnboardingInsuranceSubmission(formData) {
 
   insuranceEditState.providerInput = submittedProvider;
   insuranceEditState.error = "";
-  insuranceEditState.isSuggestionOpen = true;
+  insuranceEditState.isSuggestionOpen = !insuranceEditState.manualEntry && submittedProvider.length > 0;
 
   if (!submittedProvider) {
     insuranceEditState.error = "Select an insurance provider.";
@@ -3036,6 +2753,9 @@ function validateOnboardingInsuranceSubmission(formData) {
 
 function renderInsuranceProviderSuggestions() {
   if (insuranceEditState.manualEntry || !insuranceProviderState.loaded || !insuranceEditState.isSuggestionOpen) {
+    return "";
+  }
+  if (!insuranceEditState.providerInput.trim()) {
     return "";
   }
 
