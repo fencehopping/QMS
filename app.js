@@ -20,6 +20,12 @@ const patientRoutes = {
     footer: "Profile",
     subtitle: "Review insurance, confirm billing details, and connect the physician information needed to start your order.",
   },
+  "new-profile": {
+    label: "New Profile",
+    title: "New Profile",
+    footer: "New Profile",
+    subtitle: "Preview the untouched new-user profile layout before any API data is populated.",
+  },
   "profile-api-test": {
     label: "View Profile API test",
     title: "View Profile API test",
@@ -220,6 +226,8 @@ const insuranceEditState = {
   isSuggestionOpen: false,
 };
 
+const initialProfileStateSnapshot = cloneProfileState(profileState);
+
 const onboardingState = {
   medicareNumber: "",
   error: "",
@@ -257,6 +265,7 @@ const iconMap = {
   home: homeIcon(),
   "browse-shoes": shoeIcon(),
   profile: fontAwesomeIcon("fa-user"),
+  "new-profile": fontAwesomeIcon("fa-user-plus"),
   "profile-api-test": fontAwesomeIcon("fa-vial"),
   "shoe-order-test": fontAwesomeIcon("fa-shoe-prints"),
   "cgm-order-test": fontAwesomeIcon("fa-wave-square"),
@@ -273,6 +282,7 @@ const views = {
   home: renderHome,
   "browse-shoes": renderBrowseShoes,
   profile: renderProfile,
+  "new-profile": renderNewProfile,
   "profile-api-test": renderProfileApiTest,
   "shoe-order-test": () => renderShoeOrderStatusPage(),
   "cgm-order-test": () => renderCgmOrderStatusPage(),
@@ -1205,6 +1215,14 @@ function renderProfile() {
   `;
 }
 
+function renderNewProfile() {
+  const liveProfileState = cloneProfileState(profileState);
+  applyProfileStateSnapshot(initialProfileStateSnapshot);
+  const markup = renderProfile();
+  applyProfileStateSnapshot(liveProfileState);
+  return markup;
+}
+
 function renderProfileApiTest() {
   const lookupStateLabel = softgaitApiState.loading
     ? "Fetching live data"
@@ -2087,7 +2105,7 @@ function renderPageChrome(routeKey, route) {
   pageTitle.textContent = currentPortal === "patient" && routeKey === "home"
     ? `Welcome Back ${getPatientDisplayName()}`
     : route.title;
-  pageSubtitle.innerHTML = currentPortal === "patient" && routeKey === "profile"
+  pageSubtitle.innerHTML = currentPortal === "patient" && (routeKey === "profile" || routeKey === "new-profile")
     ? `${route.subtitle} <button class="page-header__text-link" data-edit-target="prequalifying" type="button">Edit Prequalifying Questions</button>`
     : route.subtitle;
   pageHeaderActions.innerHTML = "";
@@ -2102,7 +2120,7 @@ function getRoutes() {
 function getPortalNavRoutes() {
   return currentPortal === "fitter"
     ? ["home", "signout"]
-    : ["profile", "profile-api-test", "shoe-order-test", "cgm-order-test", "orders", "support", "security", "signout"];
+    : ["profile", "new-profile", "profile-api-test", "shoe-order-test", "cgm-order-test", "orders", "support", "security", "signout"];
 }
 
 function getDefaultRoute() {
@@ -2850,6 +2868,18 @@ function resolveInsuranceProviderName(providerName) {
 
 function normalizeInsuranceProviderName(providerName) {
   return String(providerName || "").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function cloneProfileState(source) {
+  return JSON.parse(JSON.stringify(source));
+}
+
+function applyProfileStateSnapshot(snapshot) {
+  profileState.prequalifying = cloneProfileState(snapshot.prequalifying);
+  profileState.insurance = cloneProfileState(snapshot.insurance);
+  profileState.addresses = cloneProfileState(snapshot.addresses);
+  profileState.personal = cloneProfileState(snapshot.personal);
+  profileState.physician = cloneProfileState(snapshot.physician);
 }
 
 function escapeHtml(value) {
