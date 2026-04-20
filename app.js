@@ -240,6 +240,14 @@ const physicianModalUiState = {
   filtersCollapsed: false,
 };
 
+const usStateOptions = [
+  "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI",
+  "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN",
+  "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH",
+  "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA",
+  "WV", "WI", "WY", "DC",
+];
+
 const fitterDashboardState = {
   sortField: "nextShipment",
   sortDirection: "asc",
@@ -440,8 +448,8 @@ function initNav() {
     schedulePhysicianSearch({ page: 1, openModal: false });
   });
 
-  document.addEventListener("input", (event) => {
-    if (!(event.target instanceof HTMLInputElement)) return;
+  const handlePhysicianFilterInput = (event) => {
+    if (!(event.target instanceof HTMLInputElement) && !(event.target instanceof HTMLSelectElement)) return;
     if (!event.target.matches("[data-physician-filter]")) return;
     const field = event.target.dataset.physicianFilter;
     profileState.physician[field] = event.target.value;
@@ -453,7 +461,10 @@ function initNav() {
     if (profileState.physician.searchName.trim().length > 0) {
       schedulePhysicianSearch({ page: 1, openModal: false });
     }
-  });
+  };
+
+  document.addEventListener("input", handlePhysicianFilterInput);
+  document.addEventListener("change", handlePhysicianFilterInput);
 
   document.addEventListener("input", (event) => {
     if (!(event.target instanceof HTMLInputElement)) return;
@@ -1814,7 +1825,13 @@ function renderPhysicianSection() {
               <div class="physician-search__filters">
                 <div class="physician-search__mini-field">
                   <span class="physician-search__mini-label">State</span>
-                  <input type="text" value="${escapeAttribute(profileState.physician.searchState)}" placeholder="State" aria-label="Search by state" data-physician-filter="searchState" />
+                  <select aria-label="Search by state" data-physician-filter="searchState">
+                    ${usStateOptions.map((stateCode) => {
+                      const label = stateCode || "State";
+                      const selected = stateCode === profileState.physician.searchState ? " selected" : "";
+                      return `<option value="${stateCode}"${selected}>${label}</option>`;
+                    }).join("")}
+                  </select>
                 </div>
                 <div class="physician-search__name-stack" data-physician-search-region>
                   <div class="physician-search__input">

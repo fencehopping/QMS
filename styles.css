@@ -1505,7 +1505,8 @@ button {
   text-transform: uppercase;
 }
 
-.physician-search__mini-field input {
+.physician-search__mini-field input,
+.physician-search__mini-field select {
   width: 100%;
   min-height: 46px;
   padding: 0 12px;
@@ -3819,6 +3820,7 @@ button {
 
   .modal-input,
   .physician-search__mini-field input,
+  .physician-search__mini-field select,
   .physician-search__input input,
   .physician-modal__search .modal-input {
     font-size: 16px;
