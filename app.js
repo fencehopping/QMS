@@ -529,7 +529,7 @@ function initNav() {
           : onboardingState.medicareNumber;
         openModal("onboarding-medicare-number");
       } else if (choice === "private") {
-        initializeInsuranceEditState(profileState.insurance.primaryPayer === "Medicare" ? "" : profileState.insurance.primaryPayer);
+        initializeInsuranceEditState("");
         insuranceEditState.manualEntry = false;
         insuranceEditState.isSuggestionOpen = false;
         openModal("onboarding-insurance");
@@ -2470,7 +2470,7 @@ function renderOnboardingMedicareNumberStep() {
 
 function renderOnboardingInsuranceStep() {
   const providerValue = insuranceEditState.providerInput;
-  const policyValue = profileState.insurance.primaryPayer === "Medicare" ? "" : profileState.insurance.providerAccountNumber;
+  const policyValue = "";
 
   return renderOnboardingShell(`
     <div class="onboarding-modal__content onboarding-modal__content--insurance">
