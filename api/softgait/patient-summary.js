@@ -2,6 +2,7 @@ const softgaitBaseUrl = process.env.SOFTGAIT_BASE_URL || "https://sandbox.softga
 const softgaitEnvToken = process.env.SOFTGAIT_BEARER_TOKEN || "";
 const softgaitEnvUsername = process.env.SOFTGAIT_USERNAME || "";
 const softgaitEnvPassword = process.env.SOFTGAIT_PASSWORD || "";
+const softgaitFixedPatientId = 571595;
 const softgaitEndpoints = {
   patient: "/api/patientdetails/{personId}",
   insurances: "/api/patientdetails/insurances/{personId}",
@@ -17,14 +18,14 @@ export default async function handler(req, res) {
     return;
   }
 
-  const personId = Number(req.body?.personId);
-  if (!Number.isInteger(personId) || personId <= 0) {
-    res.status(400).setHeader("Cache-Control", "no-store").json({ error: "personId must be a positive integer." });
+  const requestedPersonId = Number(req.body?.personId);
+  if (req.body?.personId !== undefined && requestedPersonId !== softgaitFixedPatientId) {
+    res.status(403).setHeader("Cache-Control", "no-store").json({ error: `Only patient ${softgaitFixedPatientId} is available in this environment.` });
     return;
   }
 
   const summary = await fetchSoftgaitPatientSummary({
-    personId,
+    personId: softgaitFixedPatientId,
     requestedToken: normalizeBearerToken(req.body?.token),
     username: normalizeString(req.body?.username) || softgaitEnvUsername,
     password: normalizePassword(req.body?.password) || softgaitEnvPassword,

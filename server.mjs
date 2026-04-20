@@ -21,6 +21,7 @@ const softgaitBaseUrl = process.env.SOFTGAIT_BASE_URL || "https://sandbox.softga
 const softgaitEnvToken = process.env.SOFTGAIT_BEARER_TOKEN || "";
 const softgaitEnvUsername = process.env.SOFTGAIT_USERNAME || "";
 const softgaitEnvPassword = process.env.SOFTGAIT_PASSWORD || "";
+const softgaitFixedPatientId = 571595;
 const softgaitDefaultUsername = softgaitEnvUsername;
 const softgaitDefaultPassword = softgaitEnvPassword;
 const softgaitEndpoints = {
@@ -173,14 +174,14 @@ async function proxySoftgaitPatientSummary(req, res) {
     return;
   }
 
-  const personId = Number(body?.personId);
-  if (!Number.isInteger(personId) || personId <= 0) {
-    sendJson(res, 400, { error: "personId must be a positive integer." });
+  const requestedPersonId = Number(body?.personId);
+  if (body?.personId !== undefined && requestedPersonId !== softgaitFixedPatientId) {
+    sendJson(res, 403, { error: `Only patient ${softgaitFixedPatientId} is available in this environment.` });
     return;
   }
 
   const summary = await fetchSoftgaitPatientSummary({
-    personId,
+    personId: softgaitFixedPatientId,
     requestedToken: normalizeBearerToken(body?.token),
     username: normalizeString(body?.username) || softgaitDefaultUsername,
     password: normalizePassword(body?.password) || softgaitDefaultPassword,
@@ -191,68 +192,8 @@ async function proxySoftgaitPatientSummary(req, res) {
 }
 
 async function proxySoftgaitRandomPatient(req, res) {
-  let body;
-  try {
-    body = await readJsonBody(req);
-  } catch (error) {
-    sendJson(res, 400, {
-      error: error instanceof Error ? error.message : "Invalid request body.",
-    });
-    return;
-  }
-
-  const minPersonId = Number.isInteger(Number(body?.minPersonId)) ? Number(body.minPersonId) : 100000;
-  const maxPersonId = Number.isInteger(Number(body?.maxPersonId)) ? Number(body.maxPersonId) : 999999;
-  const attempts = Number.isInteger(Number(body?.attempts))
-    ? Math.min(Math.max(Number(body.attempts), 1), 20)
-    : 8;
-
-  if (minPersonId <= 0 || maxPersonId < minPersonId) {
-    sendJson(res, 400, { error: "Invalid random patient range." });
-    return;
-  }
-
-  const requestedToken = normalizeBearerToken(body?.token);
-  const username = normalizeString(body?.username) || softgaitDefaultUsername;
-  const password = normalizePassword(body?.password) || softgaitDefaultPassword;
-  const sampledPersonIds = createRandomPersonIds(minPersonId, maxPersonId, attempts);
-  const attemptResults = [];
-
-  for (const personId of sampledPersonIds) {
-    const summary = await fetchSoftgaitPatientSummary({
-      personId,
-      requestedToken,
-      username,
-      password,
-      usingDefaultSandboxCredentials: Boolean(!body?.username && !body?.password && !softgaitEnvUsername && !softgaitEnvPassword && !requestedToken),
-    });
-    attemptResults.push({
-      personId,
-      success: summary.success,
-      message: summary.message,
-      auth: summary.data?.auth || null,
-      sections: summarizeSectionStatuses(summary.data?.sections || {}),
-    });
-
-    if (summary.success) {
-      sendJson(res, 200, {
-        success: true,
-        message: "Found a patient record.",
-        sampledPersonIds,
-        data: summary.data,
-        attempts: attemptResults,
-      });
-      return;
-    }
-  }
-
-  sendJson(res, 200, {
-    success: false,
-    message: "No accessible patient record was found in the sampled range.",
-    sampledPersonIds,
-    attempts: attemptResults,
-    blocker: detectSoftgaitBlocker(attemptResults),
-    data: null,
+  sendJson(res, 403, {
+    error: `Random patient lookup is disabled. Only patient ${softgaitFixedPatientId} is available in this environment.`,
   });
 }
 
