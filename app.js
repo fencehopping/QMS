@@ -134,6 +134,7 @@ let physicianSearchDebounce = 0;
 let hasShownOnboardingFlow = false;
 let onboardingProcessingTimeout = 0;
 const insuranceProviderDataUrl = "./Insurance%20Drop%20Down/insurance_dropdown_full.json";
+const insuranceProviderTypeOptions = ["Medicare", "Private", "Cash"];
 
 const profileState = {
   prequalifying: {
@@ -222,6 +223,8 @@ const insuranceProviderState = {
 const insuranceEditState = {
   manualEntry: false,
   providerInput: profileState.insurance.primaryPayer,
+  providerType: profileState.insurance.insuranceType,
+  accountNumber: profileState.insurance.providerAccountNumber,
   error: "",
   isSuggestionOpen: false,
 };
@@ -493,6 +496,30 @@ function initNav() {
     refreshInsuranceAutocompleteUi();
   });
 
+  document.addEventListener("change", (event) => {
+    if (!(event.target instanceof HTMLSelectElement)) return;
+    if (!event.target.matches("[data-insurance-provider-type]")) return;
+    const formValues = new FormData(modalForm);
+    const providerType = getInsuranceProviderTypeValue(event.target.value);
+    const previousProviderType = getInsuranceProviderTypeValue(insuranceEditState.providerType);
+    insuranceEditState.providerType = providerType;
+    insuranceEditState.accountNumber = previousProviderType === "Medicare" && providerType === "Private"
+      ? ""
+      : String(formValues.get("providerAccountNumber") || "").trim();
+    insuranceEditState.error = "";
+    insuranceEditState.isSuggestionOpen = false;
+
+    if (providerType === "Private") {
+      insuranceEditState.providerInput = String(formValues.get("primaryPayer") || "").trim();
+      insuranceEditState.manualEntry = false;
+    } else {
+      insuranceEditState.providerInput = providerType;
+      insuranceEditState.manualEntry = true;
+    }
+
+    openModal("insurance");
+  });
+
   document.addEventListener("input", (event) => {
     if (
       !(event.target instanceof HTMLInputElement)
@@ -545,16 +572,19 @@ function initNav() {
       const choice = onboardingChoiceTrigger.dataset.onboardingChoice;
       onboardingState.error = "";
       if (choice === "medicare") {
+        profileState.insurance.insuranceType = "Medicare";
         onboardingState.medicareNumber = profileState.insurance.primaryPayer === "Medicare"
           ? profileState.insurance.providerAccountNumber
           : onboardingState.medicareNumber;
         openModal("onboarding-medicare-number");
       } else if (choice === "private") {
+        profileState.insurance.insuranceType = "Private";
         initializeInsuranceEditState("");
         insuranceEditState.manualEntry = false;
         insuranceEditState.isSuggestionOpen = false;
         openModal("onboarding-insurance");
       } else if (choice === "cash") {
+        profileState.insurance.insuranceType = "Cash";
         window.location.href = "https://shop.quantummedicalsupply.com";
       }
       return;
@@ -1107,8 +1137,8 @@ function renderProfile() {
                 <div class="intake-data-list">
                   ${profileField("Primary Payer", profileState.insurance.primaryPayer)}
                   ${profileField("Provider Account Number", profileState.insurance.providerAccountNumber, true)}
+                  ${profileField("Provider Type", getInsuranceProviderTypeValue())}
                   ${hasManualInsuranceEntry ? "" : profileField("Description", profileState.insurance.description)}
-                  ${hasManualInsuranceEntry ? "" : profileField("Insurance Type", profileState.insurance.insuranceType, true)}
                   ${hasManualInsuranceEntry ? "" : profileField("Coordination of Benefits", profileState.insurance.coordination)}
                 </div>
               </article>
@@ -2053,6 +2083,7 @@ function openModal(target) {
     modalCard.classList.toggle("modal-card--wide", config.variant === "wide");
     modalCard.classList.toggle("modal-card--physician-results", target === "physician-search-results");
     modalCard.classList.toggle("modal-card--onboarding", config.variant === "onboarding");
+    modalCard.classList.toggle("modal-card--insurance", target === "insurance");
   }
   if (modalHeader instanceof HTMLElement) {
     modalHeader.hidden = config.variant === "onboarding";
@@ -2213,14 +2244,22 @@ function modalConfig(target) {
         `,
       };
     case "insurance":
+      {
+        const providerType = getInsuranceProviderTypeValue(insuranceEditState.providerType);
+        const accountLabel = providerType === "Medicare"
+          ? "Provider Account Number (Medicare Number)"
+          : "Provider Account Number";
+        const providerField = providerType === "Private" ? renderInsuranceProviderField() : "";
       return {
         eyebrow: "Edit Details",
         title: "Edit Insurance Details",
         fields: `
-          ${renderInsuranceProviderField()}
-          ${modalField("Provider Account Number (Medicare Number)", "providerAccountNumber", profileState.insurance.providerAccountNumber)}
+          ${modalSelect("Provider Type", "insuranceType", providerType, insuranceProviderTypeOptions, "data-insurance-provider-type")}
+          ${providerField}
+          ${modalField(accountLabel, "providerAccountNumber", insuranceEditState.accountNumber)}
         `,
       };
+      }
     case "billing-address":
       return {
         eyebrow: "Edit Details",
@@ -2331,10 +2370,14 @@ function applyModalChanges(target, formData) {
       Object.assign(profileState.personal, values);
       break;
     case "insurance":
-      {
+      profileState.insurance.insuranceType = getInsuranceProviderTypeValue(values.insuranceType);
+      if (profileState.insurance.insuranceType === "Private") {
         const resolvedProvider = resolveInsuranceProviderName(values.primaryPayer);
         profileState.insurance.manualEntry = insuranceEditState.manualEntry || !resolvedProvider;
         profileState.insurance.primaryPayer = resolvedProvider || String(values.primaryPayer || "").trim();
+      } else {
+        profileState.insurance.manualEntry = true;
+        profileState.insurance.primaryPayer = profileState.insurance.insuranceType;
       }
       profileState.insurance.providerAccountNumber = String(values.providerAccountNumber || "").trim();
       break;
@@ -2386,6 +2429,7 @@ function handleOnboardingModalSubmit(formData) {
     onboardingState.medicareNumber = medicareNumber;
     profileState.insurance.manualEntry = false;
     profileState.insurance.primaryPayer = "Medicare";
+    profileState.insurance.insuranceType = "Medicare";
     profileState.insurance.providerAccountNumber = medicareNumber;
     startOnboardingProcessing();
     return true;
@@ -2402,6 +2446,7 @@ function handleOnboardingModalSubmit(formData) {
       profileState.insurance.manualEntry = !resolvedProvider;
       profileState.insurance.primaryPayer = resolvedProvider || String(values.primaryPayer || "").trim();
     }
+    profileState.insurance.insuranceType = getInsuranceProviderTypeValue(values.insuranceType);
     profileState.insurance.providerAccountNumber = String(values.policyNumber || "").trim();
     startOnboardingProcessing();
     return true;
@@ -2419,12 +2464,24 @@ function modalField(label, name, value, type = "text") {
   `;
 }
 
-function modalSelect(label, name, value, options) {
+function getInsuranceProviderTypeValue(value = profileState.insurance.insuranceType) {
+  const normalizedValue = String(value || "").trim().toLowerCase();
+  const exactOption = insuranceProviderTypeOptions.find((option) => option.toLowerCase() === normalizedValue);
+  if (exactOption) return exactOption;
+
+  const normalizedPayer = String(profileState.insurance.primaryPayer || "").trim().toLowerCase();
+  if (normalizedPayer.includes("medicare")) return "Medicare";
+  if (normalizedPayer === "cash") return "Cash";
+
+  return "Private";
+}
+
+function modalSelect(label, name, value, options, attributes = "") {
   return `
     <label class="modal-field">
       <span class="modal-field__label">${label}</span>
-      <select class="modal-input" name="${name}">
-        ${options.map((option) => `<option value="${option}"${option === value ? " selected" : ""}>${option}</option>`).join("")}
+      <select class="modal-input" name="${name}" ${attributes}>
+        ${options.map((option) => `<option value="${escapeAttribute(option)}"${option === value ? " selected" : ""}>${escapeHtml(option)}</option>`).join("")}
       </select>
     </label>
   `;
@@ -2575,6 +2632,8 @@ function startOnboardingProcessing() {
 function initializeInsuranceEditState(providerName = "") {
   const submittedProvider = String(providerName || "").trim();
   insuranceEditState.providerInput = submittedProvider;
+  insuranceEditState.providerType = getInsuranceProviderTypeValue();
+  insuranceEditState.accountNumber = profileState.insurance.providerAccountNumber;
   insuranceEditState.manualEntry = insuranceProviderState.loaded && submittedProvider.length > 0
     ? !Boolean(resolveInsuranceProviderName(submittedProvider))
     : false;
@@ -2729,27 +2788,31 @@ function renderInsuranceProviderField() {
   const toggleLabel = insuranceEditState.manualEntry ? "Use provider list instead" : "Can't find it? Enter manually";
   const toggleMode = insuranceEditState.manualEntry ? "list" : "manual";
   const suggestionsMarkup = renderInsuranceProviderSuggestions();
+  const suggestionsHidden = suggestionsMarkup.trim() ? "" : " hidden";
 
   return `
     <div class="insurance-provider-picker" data-insurance-provider-picker>
-      <label class="modal-field">
-        <span class="modal-field__label">Insurance Provider</span>
-        <input
-          class="modal-input"
-          type="text"
-          name="primaryPayer"
-          value="${escapeAttribute(providerValue)}"
-          placeholder="Enter Provider"
-          autocomplete="off"
-          data-insurance-provider-input
-        />
-      </label>
-      <div class="insurance-provider-picker__suggestions" data-insurance-provider-suggestions>
-        ${suggestionsMarkup}
-      </div>
-      <div class="insurance-provider-picker__footer">
-        <p class="insurance-provider-picker__helper">${helperText}</p>
-        <button class="insurance-provider-picker__toggle" data-insurance-entry-mode="${toggleMode}" type="button">${toggleLabel}</button>
+      <div class="modal-field">
+        <label class="modal-field__label" for="insuranceProviderInput">Insurance Provider</label>
+        <span class="insurance-provider-picker__meta-row">
+          <span class="insurance-provider-picker__helper">${helperText}</span>
+          <button class="insurance-provider-picker__toggle" data-insurance-entry-mode="${toggleMode}" type="button">${toggleLabel}</button>
+        </span>
+        <div class="insurance-provider-picker__combo">
+          <input
+            id="insuranceProviderInput"
+            class="modal-input"
+            type="text"
+            name="primaryPayer"
+            value="${escapeAttribute(providerValue)}"
+            placeholder="Enter Provider"
+            autocomplete="off"
+            data-insurance-provider-input
+          />
+          <div class="insurance-provider-picker__suggestions" data-insurance-provider-suggestions${suggestionsHidden}>
+            ${suggestionsMarkup}
+          </div>
+        </div>
       </div>
       ${insuranceEditState.error ? `<p class="insurance-provider-picker__error">${insuranceEditState.error}</p>` : ""}
     </div>
@@ -2758,11 +2821,14 @@ function renderInsuranceProviderField() {
 
 function validateInsuranceModalSubmission(formData) {
   const values = Object.fromEntries(formData.entries());
+  const providerType = getInsuranceProviderTypeValue(values.insuranceType);
   const submittedProvider = String(values.primaryPayer || "").trim();
   insuranceEditState.providerInput = submittedProvider;
+  insuranceEditState.providerType = providerType;
+  insuranceEditState.accountNumber = String(values.providerAccountNumber || "").trim();
   insuranceEditState.error = "";
 
-  if (!submittedProvider) {
+  if (providerType === "Private" && !submittedProvider) {
     insuranceEditState.error = "Enter the insurance provider.";
     return false;
   }
@@ -2849,7 +2915,9 @@ function getInsuranceProviderSuggestions(query) {
 function refreshInsuranceAutocompleteUi() {
   const suggestions = document.querySelector("[data-insurance-provider-suggestions]");
   if (suggestions) {
-    suggestions.innerHTML = renderInsuranceProviderSuggestions();
+    const suggestionsMarkup = renderInsuranceProviderSuggestions();
+    suggestions.innerHTML = suggestionsMarkup;
+    suggestions.hidden = !suggestionsMarkup.trim();
   }
 }
 
