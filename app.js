@@ -479,12 +479,15 @@ function initNav() {
   document.addEventListener("input", handlePhysicianFilterInput);
   document.addEventListener("change", handlePhysicianFilterInput);
 
-  document.addEventListener("input", (event) => {
-    if (!(event.target instanceof HTMLInputElement)) return;
+  const handleModalPhysicianFilterInput = (event) => {
+    if (!(event.target instanceof HTMLInputElement) && !(event.target instanceof HTMLSelectElement)) return;
     if (!event.target.matches("[data-modal-physician-filter]")) return;
     const field = event.target.dataset.modalPhysicianFilter;
     profileState.physician[field] = event.target.value;
-  });
+  };
+
+  document.addEventListener("input", handleModalPhysicianFilterInput);
+  document.addEventListener("change", handleModalPhysicianFilterInput);
 
   document.addEventListener("input", (event) => {
     if (!(event.target instanceof HTMLInputElement)) return;
@@ -3188,7 +3191,13 @@ function renderPhysicianSearchFilters() {
     <div class="physician-modal__filters">
       <label class="modal-field">
         <span class="modal-field__label">State</span>
-        <input class="modal-input" type="text" value="${escapeAttribute(profileState.physician.searchState)}" name="searchState" data-modal-physician-filter="searchState" />
+        <select class="modal-input" name="searchState" data-modal-physician-filter="searchState" aria-label="Search by state">
+          ${usStateOptions.map((stateCode) => {
+            const label = stateCode || "State";
+            const selected = stateCode === profileState.physician.searchState ? " selected" : "";
+            return `<option value="${escapeAttribute(stateCode)}"${selected}>${escapeHtml(label)}</option>`;
+          }).join("")}
+        </select>
       </label>
       <label class="modal-field">
         <span class="modal-field__label">City</span>
