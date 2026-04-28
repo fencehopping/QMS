@@ -575,6 +575,12 @@ function initNav() {
       openModal("onboarding-medicare-question");
       return;
     }
+    const onboardingBackTrigger = event.target.closest("[data-onboarding-back]");
+    if (onboardingBackTrigger) {
+      onboardingState.error = "";
+      openModal("onboarding-medicare-question");
+      return;
+    }
     const onboardingChoiceTrigger = event.target.closest("[data-onboarding-choice]");
     if (onboardingChoiceTrigger instanceof HTMLElement) {
       const choice = onboardingChoiceTrigger.dataset.onboardingChoice;
@@ -585,7 +591,10 @@ function initNav() {
         openInsuranceEditModalFromOnboarding("Private");
       } else if (choice === "cash") {
         profileState.insurance.insuranceType = "Cash";
-        window.location.href = "https://shop.quantummedicalsupply.com";
+        profileState.insurance.primaryPayer = "Cash";
+        profileState.insurance.providerAccountNumber = "";
+        profileState.insurance.manualEntry = true;
+        openModal("onboarding-cash-store");
       }
       return;
     }
@@ -2237,6 +2246,12 @@ function modalConfig(target) {
         variant: "onboarding",
         body: renderOnboardingProcessingStep(),
       };
+    case "onboarding-cash-store":
+      return {
+        title: "Visit our online store",
+        variant: "onboarding",
+        body: renderOnboardingCashStoreStep(),
+      };
     case "prequalifying":
       return {
         eyebrow: "Edit Details",
@@ -2625,6 +2640,22 @@ function renderOnboardingProcessingStep() {
       <h2 class="onboarding-modal__headline">Verifying Insurance...</h2>
     </div>
   `, "onboarding-modal--processing");
+}
+
+function renderOnboardingCashStoreStep() {
+  return renderOnboardingShell(`
+    <button class="onboarding-modal__back" data-onboarding-back type="button">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      <span>Back</span>
+    </button>
+    <div class="onboarding-modal__content onboarding-modal__content--cash-store">
+      <a class="onboarding-modal__store-cta" href="https://shop.quantummedicalsupply.com">
+        <span>Visit our online store</span>
+        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+      </a>
+      <img class="onboarding-modal__store-laptop" src="./images/onboarding/cash-store-laptop.png" alt="" />
+    </div>
+  `, "onboarding-modal--cash-store");
 }
 
 function startOnboardingProcessing() {
