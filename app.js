@@ -1160,8 +1160,13 @@ function renderProfile() {
               </div>
               ${profileState.insurance.hasSecondary === "Yes" ? `
                 <div class="secondary-insurance-note">
-                  <p><strong>Insurance Provider:</strong> ${profileState.insurance.secondaryProvider}</p>
-                  <p><strong>Policy Number:</strong> ${profileState.insurance.secondaryPolicyNumber}</p>
+                  <div class="secondary-insurance-note__header">
+                    <div>
+                      <p><strong>Insurance Provider:</strong> ${profileState.insurance.secondaryProvider}</p>
+                      <p><strong>Policy Number:</strong> ${profileState.insurance.secondaryPolicyNumber}</p>
+                    </div>
+                    <button class="icon-edit" data-edit-target="supplemental-insurance" type="button" aria-label="Edit supplemental insurance">Edit</button>
+                  </div>
                 </div>
               ` : ""}
             </div>

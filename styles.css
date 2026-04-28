@@ -1367,8 +1367,6 @@ select.modal-input {
 }
 
 .secondary-insurance-note {
-  display: grid;
-  gap: 6px;
   margin-top: 14px;
   padding: 12px 14px;
   border: 1px solid rgba(39, 170, 225, 0.16);
@@ -1376,11 +1374,22 @@ select.modal-input {
   background: rgba(39, 170, 225, 0.06);
 }
 
+.secondary-insurance-note__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .secondary-insurance-note p {
   margin: 0;
   color: #103e52;
   font-size: 0.9rem;
   line-height: 1.45;
+}
+
+.secondary-insurance-note p + p {
+  margin-top: 6px;
 }
 
 .intake-address-body {
