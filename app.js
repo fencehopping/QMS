@@ -1932,8 +1932,8 @@ function renderPhysicianCard(title, physician, slot) {
         <p>${physician.address1}</p>
         ${physician.address2 ? `<p>${physician.address2}</p>` : ""}
         <p>${formatCityStateZip(physician.city, physician.state, physician.zipCode)}</p>
-        ${physician.phoneNumber ? `<p>${physician.phoneNumber}</p>` : ""}
-        ${physician.faxNumber ? `<p>Fax: ${physician.faxNumber}</p>` : ""}
+        ${physician.phoneNumber ? `<p><strong>Primary Phone:</strong> ${physician.phoneNumber}</p>` : ""}
+        ${physician.faxNumber ? `<p><strong>Fax:</strong> ${physician.faxNumber}</p>` : ""}
       </div>
     </article>
   `;
@@ -3044,6 +3044,7 @@ function applyPhysicianLocationSelection(slot, locationId) {
   record.state = selectedLocation.state || "";
   record.zipCode = selectedLocation.zipCode || "";
   record.phoneNumber = selectedLocation.phone || "";
+  record.faxNumber = selectedLocation.fax || "";
 }
 
 function renderSelectedPhysicianField(physicianRecord) {
@@ -3488,9 +3489,14 @@ function mapPhysicianResult(result) {
     state: address.state || "",
     zipCode: postalCode,
     phone: address.telephone_number || "",
+    fax: getPhysicianAddressFax(address),
     locationId: "",
     locations: mapPhysicianLocations(result),
   };
+}
+
+function getPhysicianAddressFax(address) {
+  return address.fax_number || address.faxNumber || address.fax || "";
 }
 
 function mapPhysicianLocations(result) {
@@ -3507,6 +3513,7 @@ function mapPhysicianLocations(result) {
       address.state || "",
       postalCode,
       address.telephone_number || "",
+      getPhysicianAddressFax(address),
     ].join("|");
     if (seen.has(key)) return;
     seen.add(key);
@@ -3518,6 +3525,7 @@ function mapPhysicianLocations(result) {
       state: address.state || "",
       zipCode: postalCode,
       phone: address.telephone_number || "",
+      fax: getPhysicianAddressFax(address),
     });
   });
 
@@ -3551,6 +3559,7 @@ function applyPhysicianSelection(physician) {
     state: physician.state,
     zipCode: physician.zipCode,
     phone: physician.phone,
+    fax: physician.fax,
     locationId: physician.locationId || physician.locations?.[0]?.id || "",
     locations: physician.locations || [],
   });
