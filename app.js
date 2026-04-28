@@ -572,17 +572,9 @@ function initNav() {
       const choice = onboardingChoiceTrigger.dataset.onboardingChoice;
       onboardingState.error = "";
       if (choice === "medicare") {
-        profileState.insurance.insuranceType = "Medicare";
-        onboardingState.medicareNumber = profileState.insurance.primaryPayer === "Medicare"
-          ? profileState.insurance.providerAccountNumber
-          : onboardingState.medicareNumber;
-        openModal("onboarding-medicare-number");
+        openInsuranceEditModalFromOnboarding("Medicare");
       } else if (choice === "private") {
-        profileState.insurance.insuranceType = "Private";
-        initializeInsuranceEditState("");
-        insuranceEditState.manualEntry = false;
-        insuranceEditState.isSuggestionOpen = false;
-        openModal("onboarding-insurance");
+        openInsuranceEditModalFromOnboarding("Private");
       } else if (choice === "cash") {
         profileState.insurance.insuranceType = "Cash";
         window.location.href = "https://shop.quantummedicalsupply.com";
@@ -2532,7 +2524,7 @@ function renderOnboardingMedicareQuestionStep() {
     <div class="onboarding-modal__content onboarding-modal__content--question">
       <h2 class="onboarding-modal__headline">What is your primary insurance?</h2>
       <div class="onboarding-modal__binary-actions">
-        <button class="onboarding-modal__choice onboarding-modal__choice--dark" data-onboarding-choice="medicare" type="button">Medicare</button>
+        <button class="onboarding-modal__choice onboarding-modal__choice--light" data-onboarding-choice="medicare" type="button">Medicare</button>
         <button class="onboarding-modal__choice onboarding-modal__choice--light" data-onboarding-choice="private" type="button">Private Insurance</button>
         <button class="onboarding-modal__choice onboarding-modal__choice--light" data-onboarding-choice="cash" type="button">Cash</button>
       </div>
@@ -2639,6 +2631,32 @@ function initializeInsuranceEditState(providerName = "") {
     : false;
   insuranceEditState.error = "";
   insuranceEditState.isSuggestionOpen = false;
+}
+
+function openInsuranceEditModalFromOnboarding(providerType) {
+  const normalizedProviderType = getInsuranceProviderTypeValue(providerType);
+  profileState.insurance.insuranceType = normalizedProviderType;
+  insuranceEditState.providerType = normalizedProviderType;
+  insuranceEditState.error = "";
+  insuranceEditState.isSuggestionOpen = false;
+
+  if (normalizedProviderType === "Medicare") {
+    profileState.insurance.primaryPayer = "Medicare";
+    profileState.insurance.providerAccountNumber = "";
+    profileState.insurance.manualEntry = true;
+    insuranceEditState.providerInput = "Medicare";
+    insuranceEditState.manualEntry = true;
+    insuranceEditState.accountNumber = "";
+  } else {
+    profileState.insurance.primaryPayer = "";
+    profileState.insurance.providerAccountNumber = "";
+    profileState.insurance.manualEntry = false;
+    insuranceEditState.providerInput = "";
+    insuranceEditState.manualEntry = false;
+    insuranceEditState.accountNumber = "";
+  }
+
+  openModal("insurance");
 }
 
 async function loadInsuranceProviders() {
