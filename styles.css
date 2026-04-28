@@ -1419,6 +1419,15 @@ select.modal-input {
   align-items: start;
 }
 
+.modal-grid--physician-address {
+  grid-template-columns: minmax(0, 1fr) 82px 102px;
+}
+
+.modal-grid--physician-address select.modal-input {
+  padding-right: 34px;
+  background-position: right 12px center;
+}
+
 .intake-add-card__body {
   display: grid;
   justify-items: center;

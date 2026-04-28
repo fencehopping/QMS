@@ -501,6 +501,11 @@ function initNav() {
 
   document.addEventListener("change", (event) => {
     if (!(event.target instanceof HTMLSelectElement)) return;
+    if (event.target.matches("[data-physician-location-select]")) {
+      applyPhysicianLocationSelection(activePhysicianSlot, event.target.value);
+      openModal("edit-physician");
+      return;
+    }
     if (!event.target.matches("[data-insurance-provider-type]")) return;
     const formValues = new FormData(modalForm);
     const providerType = getInsuranceProviderTypeValue(event.target.value);
@@ -2346,6 +2351,7 @@ function modalConfig(target) {
           fields: `
             ${renderSelectedPhysicianField(physicianRecord)}
             ${renderPhysicianLocationField(physicianRecord)}
+            ${renderPhysicianContactFields(physicianRecord)}
             <button class="physician-search__hero-link physician-search__hero-link--left" data-open-physician-picker="${activePhysicianSlot}" type="button">Search for a different physician</button>
           `,
         };
@@ -2408,6 +2414,7 @@ function applyModalChanges(target, formData) {
       break;
     case "edit-physician":
       applyPhysicianLocationSelection(activePhysicianSlot, values.locationId || "");
+      updatePhysicianContactDetails(activePhysicianSlot, values);
       break;
     default:
       break;
@@ -3032,6 +3039,17 @@ function setPhysicianRecord(slot, values) {
   }
 }
 
+function updatePhysicianContactDetails(slot, values) {
+  const record = getPhysicianRecord(slot);
+  record.address1 = values.address1 || "";
+  record.address2 = values.address2 || "";
+  record.city = values.city || "";
+  record.state = values.state || "";
+  record.zipCode = values.zipCode || "";
+  record.phoneNumber = values.phoneNumber || "";
+  record.faxNumber = values.faxNumber || "";
+}
+
 function applyPhysicianLocationSelection(slot, locationId) {
   const record = getPhysicianRecord(slot);
   if (!Array.isArray(record.locations) || !record.locations.length) return;
@@ -3071,7 +3089,7 @@ function renderPhysicianLocationField(physicianRecord) {
   return `
     <label class="modal-field">
       <span class="modal-field__label">Location</span>
-      <select class="modal-input" name="locationId">
+      <select class="modal-input" name="locationId" data-physician-location-select>
         ${locations.length
           ? locations.map((location) => `
           <option value="${escapeAttribute(location.id)}"${location.id === selectedLocationId ? " selected" : ""}>
@@ -3079,6 +3097,41 @@ function renderPhysicianLocationField(physicianRecord) {
           </option>
         `).join("")
           : '<option value="">No locations available</option>'}
+      </select>
+    </label>
+  `;
+}
+
+function renderPhysicianContactFields(physicianRecord) {
+  return `
+    <div class="modal-grid modal-grid--physician">
+      <div class="modal-stack">
+        ${modalField("Address 1", "address1", physicianRecord.address1)}
+        ${modalField("Address 2", "address2", physicianRecord.address2)}
+        <div class="modal-grid modal-grid--address modal-grid--physician-address">
+          ${modalField("City", "city", physicianRecord.city)}
+          ${renderStateSelect("State", "state", physicianRecord.state)}
+          ${modalField("Zip Code", "zipCode", physicianRecord.zipCode)}
+        </div>
+      </div>
+      <div class="modal-stack">
+        ${modalField("Primary Phone", "phoneNumber", physicianRecord.phoneNumber, "tel")}
+        ${modalField("Fax Number", "faxNumber", physicianRecord.faxNumber, "tel")}
+      </div>
+    </div>
+  `;
+}
+
+function renderStateSelect(label, name, value) {
+  return `
+    <label class="modal-field">
+      <span class="modal-field__label">${label}</span>
+      <select class="modal-input" name="${name}">
+        ${usStateOptions.map((stateCode) => {
+          const optionLabel = stateCode || "State";
+          const selected = stateCode === value ? " selected" : "";
+          return `<option value="${escapeAttribute(stateCode)}"${selected}>${escapeHtml(optionLabel)}</option>`;
+        }).join("")}
       </select>
     </label>
   `;
