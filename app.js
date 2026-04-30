@@ -1193,18 +1193,30 @@ function renderProfile() {
           </div>
           <div class="card intake-panel">
             <div class="intake-address-grid">
-              <article class="card intake-data-card">
-                <div class="surface-card__header intake-card__header">
-                  <span>Physical Address</span>
-                  <button class="icon-edit" data-edit-target="billing-address" type="button" aria-label="Edit billing address">Edit</button>
-                </div>
-                <div class="intake-address-body">
-                  <p class="intake-address-label">Address</p>
-                  <p>${profileState.addresses.billingStreet}</p>
-                  ${profileState.addresses.billingUnit ? `<p>${profileState.addresses.billingUnit}</p>` : ""}
-                  <p>${formatCityStateZip(profileState.addresses.billingCity, profileState.addresses.billingState, profileState.addresses.billingZip)}</p>
-                </div>
-              </article>
+              ${profileState.addresses.billingStreet
+                ? `
+                  <article class="card intake-data-card">
+                    <div class="surface-card__header intake-card__header">
+                      <span>Physical Address</span>
+                      <button class="icon-edit" data-edit-target="billing-address" type="button" aria-label="Edit billing address">Edit</button>
+                    </div>
+                    <div class="intake-address-body">
+                      <p class="intake-address-label">Address</p>
+                      <p>${profileState.addresses.billingStreet}</p>
+                      ${profileState.addresses.billingUnit ? `<p>${profileState.addresses.billingUnit}</p>` : ""}
+                      <p>${formatCityStateZip(profileState.addresses.billingCity, profileState.addresses.billingState, profileState.addresses.billingZip)}</p>
+                    </div>
+                  </article>
+                `
+                : `
+                  <article class="card intake-data-card intake-add-card">
+                    <div class="surface-card__header">Physical Address</div>
+                    <div class="intake-add-card__body">
+                      <p>Add Physical Address</p>
+                      <button class="plus-button" data-edit-target="billing-address" type="button" aria-label="Add physical address">+</button>
+                    </div>
+                  </article>
+                `}
               ${profileState.addresses.shippingStreet
                 ? `
                   <article class="card intake-data-card">
