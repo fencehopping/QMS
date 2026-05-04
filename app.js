@@ -586,9 +586,18 @@ function initNav() {
       const choice = onboardingChoiceTrigger.dataset.onboardingChoice;
       onboardingState.error = "";
       if (choice === "medicare") {
-        openInsuranceEditModalFromOnboarding("Medicare");
+        profileState.insurance.insuranceType = "Medicare";
+        profileState.insurance.primaryPayer = "Medicare";
+        profileState.insurance.providerAccountNumber = "";
+        profileState.insurance.manualEntry = true;
+        openModal("onboarding-medicare-number");
       } else if (choice === "private") {
-        openInsuranceEditModalFromOnboarding("Private");
+        profileState.insurance.insuranceType = "Private";
+        profileState.insurance.primaryPayer = "";
+        profileState.insurance.providerAccountNumber = "";
+        profileState.insurance.manualEntry = false;
+        initializeInsuranceEditState("");
+        openModal("onboarding-insurance");
       } else if (choice === "cash") {
         profileState.insurance.insuranceType = "Cash";
         profileState.insurance.primaryPayer = "Cash";
@@ -2109,6 +2118,7 @@ function openModal(target) {
     modalCard.classList.toggle("modal-card--wide", config.variant === "wide");
     modalCard.classList.toggle("modal-card--physician-results", target === "physician-search-results");
     modalCard.classList.toggle("modal-card--onboarding", config.variant === "onboarding");
+    modalCard.classList.toggle("modal-card--onboarding-insurance", target === "onboarding-insurance");
     modalCard.classList.toggle("modal-card--insurance", target === "insurance");
   }
   if (modalHeader instanceof HTMLElement) {
@@ -2135,6 +2145,7 @@ function closeModal() {
     modalCard.classList.remove("modal-card--wide");
     modalCard.classList.remove("modal-card--physician-results");
     modalCard.classList.remove("modal-card--onboarding");
+    modalCard.classList.remove("modal-card--onboarding-insurance");
   }
   if (modalHeader instanceof HTMLElement) {
     modalHeader.hidden = false;

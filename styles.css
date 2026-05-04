@@ -622,6 +622,10 @@ select.modal-input {
   overflow: hidden;
 }
 
+.modal-card--onboarding-insurance {
+  overflow: visible;
+}
+
 .modal-card--onboarding .modal-form {
   padding: 0;
   gap: 0;
@@ -633,6 +637,11 @@ select.modal-input {
   padding: 18px 16px 0;
   isolation: isolate;
   overflow: hidden;
+}
+
+.modal-card--onboarding-insurance .onboarding-modal,
+.modal-card--onboarding-insurance .onboarding-modal__surface {
+  overflow: visible;
 }
 
 .onboarding-modal::before,
