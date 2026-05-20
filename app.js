@@ -1,5 +1,11 @@
 import { renderCgmOrderStatusPage } from "./cgm-order/CgmOrderStatusPage.js";
+import { derivePatientOrderUiModel as deriveCgmOrderUiModel } from "./cgm-order/derivePatientOrderUiModel.js";
+import { mockCgmOrderData } from "./cgm-order/mockOrderData.js";
+import { normalizeCgmOrder } from "./cgm-order/normalizeCgmOrder.js";
 import { renderShoeOrderStatusPage } from "./shoe-order/ShoeOrderStatusPage.js";
+import { derivePatientOrderUiModel as deriveShoeOrderUiModel } from "./shoe-order/derivePatientOrderUiModel.js";
+import { mockShoeOrderData } from "./shoe-order/mockOrderData.js";
+import { normalizeShoeOrder } from "./shoe-order/normalizeShoeOrder.js";
 
 const patientRoutes = {
   home: {
@@ -54,7 +60,7 @@ const patientRoutes = {
     label: "My Orders",
     title: "Order Status",
     footer: "My Orders",
-    subtitle: "Track shipments, delivery status, and any supply activity tied to your account.",
+    subtitle: "Track your CGM and diabetic shoe orders, see what happens next, and open the full timeline when you need more detail.",
   },
   records: {
     label: "Medical Records",
@@ -1726,93 +1732,129 @@ function renderAob() {
 }
 
 function renderOrders() {
-  const patient = getSoftgaitPatientData();
-  const invoicesWrapper = getFixedSoftgaitResponse()?.sections?.invoices;
-  const statusSignals = getFixedSoftgaitResponse()?.statusSignals || { insuranceStatuses: [], invoiceStatuses: [] };
-  const statusPills = [
-    ...statusSignals.insuranceStatuses.map((status) => `Insurance: ${status}`),
-    ...statusSignals.invoiceStatuses.map((status) => `Invoice: ${status}`),
-  ];
+  const cgmOrder = normalizeCgmOrder(mockCgmOrderData);
+  const shoeOrder = normalizeShoeOrder(mockShoeOrderData);
+  const cgmUi = cgmOrder.success ? deriveCgmOrderUiModel(cgmOrder) : null;
+  const shoeUi = shoeOrder.success ? deriveShoeOrderUiModel(shoeOrder) : null;
+  const activeOrders = [cgmUi, shoeUi].filter(Boolean);
 
   return `
     <div class="stack">
-      <section class="card surface-card orders-card">
-        <div class="surface-card__header">My Orders</div>
-        <div class="orders-card__content">
-          <article class="orders-product-card orders-product-card--active">
-            <div class="orders-product-card__body">
-              <p class="orders-product-card__eyebrow">Softgait API</p>
-              <div class="orders-product-card__title-row">
-                <h2>Patient ${escapeHtml(String(patient?.personId || softgaitFixedPatientId))}</h2>
-                <span class="orders-status-pill">${escapeHtml(statusPills[0] || "No order status available")}</span>
-              </div>
-              <p class="orders-product-card__copy">This integration does not expose a dedicated order or shipment status for patient ${escapeHtml(String(patient?.personId || softgaitFixedPatientId))}. The only live status signals available are insurance and invoice statuses.</p>
-              <div class="orders-meta">
-                <div>
-                  <span class="orders-meta__label">Insurance statuses</span>
-                  <span class="orders-meta__value">${escapeHtml(statusSignals.insuranceStatuses.join(", ") || "None returned")}</span>
-                </div>
-                <div>
-                  <span class="orders-meta__label">Invoice statuses</span>
-                  <span class="orders-meta__value">${escapeHtml(statusSignals.invoiceStatuses.join(", ") || "None returned")}</span>
-                </div>
-              </div>
-            </div>
-          </article>
+      <section class="orders-overview">
+        <div class="orders-overview__copy">
+          <p class="orders-product-card__eyebrow">My Orders</p>
+          <h2>You have ${activeOrders.length} order${activeOrders.length === 1 ? "" : "s"} in progress</h2>
+          <p>We will keep this page focused on the products you showed interest in first: CGM supplies and diabetic shoes. Open an order for the full timeline, paperwork status, appointments, and care team details.</p>
+        </div>
+        <div class="orders-overview__stats" aria-label="Order summary">
+          <div>
+            <span class="orders-overview__stat-value">${activeOrders.length}</span>
+            <span class="orders-overview__stat-label">Active orders</span>
+          </div>
+          <div>
+            <span class="orders-overview__stat-value">0</span>
+            <span class="orders-overview__stat-label">Actions needed</span>
+          </div>
         </div>
       </section>
 
-      <section class="orders-qualify-section">
-        <div class="orders-qualify-section__header">
-          <h2>Invoice Data</h2>
+      <section class="orders-status-grid" aria-label="Current order statuses">
+        ${renderOrderStatusCard({
+          eyebrow: "Continuous Glucose Monitor",
+          title: "Dexcom G7 CGM supplies",
+          image: "./images/cgms.png",
+          imageAlt: "Continuous glucose monitor supplies",
+          uiModel: cgmUi,
+          fallbackStatus: "CGM order in progress",
+          href: "#cgm-order-test",
+          ctaLabel: "View CGM Details",
+          accent: "cgm",
+        })}
+        ${renderOrderStatusCard({
+          eyebrow: "Diabetic Shoes",
+          title: "Custom diabetic shoes",
+          image: "./images/shoes.png",
+          imageAlt: "Diabetic shoes",
+          uiModel: shoeUi,
+          fallbackStatus: "Shoe order in progress",
+          href: "#shoe-order-test",
+          ctaLabel: "View Shoe Details",
+          accent: "shoes",
+        })}
+      </section>
+
+      <section class="orders-support-strip">
+        <div>
+          <p class="orders-product-card__eyebrow">What to expect</p>
+          <h2>We will only reach out if something needs your attention.</h2>
         </div>
-        ${renderInvoiceSummary(invoicesWrapper)}
+        <p>Paperwork, insurance review, appointments, and fulfillment can move at different speeds by product. This page shows the latest visible status for each order so you do not have to hunt through profile details.</p>
       </section>
     </div>
   `;
 }
 
-function renderInvoiceSummary(wrapper) {
-  if (!wrapper?.success || !Array.isArray(wrapper.data) || !wrapper.data.length) {
-    return `
-      <article class="card surface-card orders-product-card">
-        <div class="orders-product-card__body orders-product-card__body--compact">
-          <p class="orders-product-card__eyebrow">Invoices</p>
-          <h3>No invoices returned</h3>
-          <p class="orders-product-card__copy">${escapeHtml(wrapper?.message || `No invoices were returned for patient ${softgaitFixedPatientId}.`)}</p>
-        </div>
-      </article>
-    `;
-  }
+function renderOrderStatusCard({ eyebrow, title, image, imageAlt, uiModel, fallbackStatus, href, ctaLabel, accent }) {
+  const statusLabel = uiModel?.currentStatusCard?.statusLabel || fallbackStatus;
+  const lastUpdated = uiModel?.meta?.lastUpdated || "Recently";
+  const summary = uiModel?.hero?.summary || "We are working through the order steps and will update this page as the order moves forward.";
+  const nextStep = uiModel?.nextStepCard?.nextStepLabel || "We will keep your order moving";
+  const nextOwner = uiModel?.nextStepCard?.owner || "Quantum care team";
+  const requestId = uiModel?.meta?.requestId;
+  const steps = uiModel?.hero?.steps || [];
 
   return `
-    <div class="orders-qualify-grid">
-      ${wrapper.data.map((invoice, index) => `
-        <article class="card surface-card orders-product-card">
-          <div class="orders-product-card__body orders-product-card__body--compact">
-            <p class="orders-product-card__eyebrow">Invoice ${index + 1}</p>
-            <h3>${escapeHtml(String(invoice.invoiceNumber || "No invoice number"))}</h3>
-            <p class="orders-product-card__copy">${escapeHtml(String(invoice.description || "No description provided."))}</p>
-            <div class="orders-meta">
-              <div>
-                <span class="orders-meta__label">Status</span>
-                <span class="orders-meta__value">${escapeHtml(String(invoice.status || "Not provided"))}</span>
-              </div>
-              <div>
-                <span class="orders-meta__label">Amount</span>
-                <span class="orders-meta__value">${escapeHtml(formatInvoiceAmount(invoice.amount))}</span>
-              </div>
-            </div>
+    <article class="orders-status-card orders-status-card--${accent}">
+      <div class="orders-status-card__media">
+        <img src="${escapeAttribute(image)}" alt="${escapeAttribute(imageAlt)}" />
+      </div>
+      <div class="orders-status-card__body">
+        <div class="orders-status-card__topline">
+          <p class="orders-product-card__eyebrow">${escapeHtml(eyebrow)}</p>
+          <span class="orders-status-pill orders-status-pill--${accent}">${escapeHtml(statusLabel)}</span>
+        </div>
+        <div class="orders-product-card__title-row">
+          <h2>${escapeHtml(title)}</h2>
+        </div>
+        <p class="orders-product-card__copy">${escapeHtml(summary)}</p>
+        ${renderOrdersProgressSteps(steps)}
+        <div class="orders-meta orders-meta--status-card">
+          <div>
+            <span class="orders-meta__label">Next step</span>
+            <span class="orders-meta__value">${escapeHtml(nextStep)}</span>
           </div>
-        </article>
+          <div>
+            <span class="orders-meta__label">Owner</span>
+            <span class="orders-meta__value">${escapeHtml(nextOwner)}</span>
+          </div>
+          <div>
+            <span class="orders-meta__label">Last update</span>
+            <span class="orders-meta__value">${escapeHtml(lastUpdated)}</span>
+          </div>
+          <div>
+            <span class="orders-meta__label">Request</span>
+            <span class="orders-meta__value">${escapeHtml(requestId ? `#${requestId}` : "Pending")}</span>
+          </div>
+        </div>
+        <a class="pill-button orders-product-card__action" href="${escapeAttribute(href)}">${escapeHtml(ctaLabel)}</a>
+      </div>
+    </article>
+  `;
+}
+
+function renderOrdersProgressSteps(steps) {
+  if (!steps.length) return "";
+
+  return `
+    <div class="orders-progress" aria-label="Order progress">
+      ${steps.map((step) => `
+        <span class="orders-progress__step orders-progress__step--${escapeAttribute(step.status)}">
+          <span class="orders-progress__dot" aria-hidden="true"></span>
+          <span>${escapeHtml(step.label)}</span>
+        </span>
       `).join("")}
     </div>
   `;
-}
-
-function formatInvoiceAmount(value) {
-  if (value === null || value === undefined || value === "") return "Not provided";
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(value));
 }
 
 function renderSupport() {

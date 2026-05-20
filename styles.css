@@ -3028,6 +3028,148 @@ select.modal-input {
   overflow: hidden;
 }
 
+.orders-overview,
+.orders-support-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  padding: 24px;
+  border: 1px solid rgba(91, 140, 174, 0.18);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 84% 18%, rgba(39, 170, 225, 0.16), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 250, 253, 0.88));
+  box-shadow: var(--shadow-soft);
+}
+
+.orders-overview__copy,
+.orders-support-strip > div {
+  display: grid;
+  gap: 8px;
+}
+
+.orders-overview__copy h2,
+.orders-support-strip h2 {
+  margin: 0;
+  color: #103e52;
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.orders-overview__copy p:not(.orders-product-card__eyebrow),
+.orders-support-strip > p {
+  max-width: 720px;
+  margin: 0;
+  color: #5c6980;
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.orders-overview__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(118px, 1fr));
+  gap: 12px;
+}
+
+.orders-overview__stats > div {
+  display: grid;
+  gap: 4px;
+  min-height: 96px;
+  align-content: center;
+  padding: 16px;
+  border: 1px solid rgba(39, 170, 225, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.orders-overview__stat-value {
+  color: #103e52;
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.orders-overview__stat-label {
+  color: #6e8197;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.orders-status-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.orders-status-card {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  border: 1px solid rgba(105, 132, 171, 0.18);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 253, 0.92));
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.orders-status-card--cgm {
+  border-color: rgba(39, 170, 225, 0.24);
+}
+
+.orders-status-card--shoes {
+  border-color: rgba(16, 62, 82, 0.18);
+}
+
+.orders-status-card__media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  background: linear-gradient(180deg, rgba(232, 244, 255, 0.9), rgba(214, 229, 244, 0.86));
+}
+
+.orders-status-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 270px;
+  object-fit: cover;
+}
+
+.orders-status-card--cgm .orders-status-card__media img {
+  width: 88%;
+  height: auto;
+  min-height: 0;
+  max-height: 230px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.orders-status-card--shoes .orders-status-card__media img {
+  width: 86%;
+  height: auto;
+  min-height: 0;
+  max-height: 250px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.orders-status-card__body {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+}
+
+.orders-status-card__topline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .orders-card .surface-card__header {
   font-weight: 700;
 }
@@ -3149,6 +3291,16 @@ select.modal-input {
   font-weight: 700;
 }
 
+.orders-status-pill--cgm {
+  background: rgba(39, 170, 225, 0.14);
+  color: #1677a8;
+}
+
+.orders-status-pill--shoes {
+  background: rgba(16, 62, 82, 0.12);
+  color: #103e52;
+}
+
 .orders-product-card__copy {
   margin: 0;
   color: #5c6980;
@@ -3160,6 +3312,50 @@ select.modal-input {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+}
+
+.orders-meta--status-card {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding-top: 2px;
+}
+
+.orders-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.orders-progress__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(118, 138, 160, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #607188;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.orders-progress__step--complete {
+  color: #1f7d54;
+  border-color: rgba(31, 125, 84, 0.18);
+  background: rgba(31, 125, 84, 0.08);
+}
+
+.orders-progress__step--current {
+  color: #103e52;
+  border-color: rgba(39, 170, 225, 0.24);
+  background: rgba(39, 170, 225, 0.12);
+}
+
+.orders-progress__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
 }
 
 .orders-meta__label,
@@ -3481,7 +3677,7 @@ select.modal-input {
   height: 30px;
   border-radius: 999px;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .shoe-status-step__label {
@@ -3642,7 +3838,7 @@ select.modal-input {
 .shoe-status-device-badge span {
   color: #163a55;
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.03em;
 }
@@ -4408,6 +4604,38 @@ select.modal-input {
 
   .orders-product-card {
     grid-template-columns: 1fr;
+  }
+
+  .orders-overview,
+  .orders-support-strip,
+  .orders-status-card {
+    grid-template-columns: 1fr;
+  }
+
+  .orders-overview,
+  .orders-support-strip {
+    padding: 20px;
+  }
+
+  .orders-overview__stats,
+  .orders-meta--status-card {
+    grid-template-columns: 1fr;
+  }
+
+  .orders-status-card__body {
+    padding: 20px;
+  }
+
+  .orders-status-card__media img {
+    min-height: 190px;
+    max-height: 220px;
+  }
+
+  .orders-status-card--cgm .orders-status-card__media img,
+  .orders-status-card--shoes .orders-status-card__media img {
+    min-height: 0;
+    max-height: 190px;
+    padding: 16px 0;
   }
 
   .patient-api-card__header,
