@@ -742,6 +742,89 @@ select.modal-input {
   padding-top: 56px;
 }
 
+.onboarding-modal--welcome {
+  min-height: 503px;
+  padding: 19px 16px 0;
+  background: #4eb7e3;
+}
+
+.onboarding-modal--welcome::before {
+  inset: -16px auto auto 0;
+  width: 850px;
+  height: 567px;
+  background: url("./images/onboarding/cash-store-texture.png") center / cover no-repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+  transform: none;
+  z-index: 0;
+}
+
+.onboarding-modal--welcome::after {
+  top: -136px;
+  right: auto;
+  left: 50%;
+  display: block;
+  width: 861px;
+  height: 668px;
+  background: url("./images/onboarding/cash-store-wave.svg") center / 100% 100% no-repeat;
+  clip-path: none;
+  opacity: 1;
+  transform: translateX(-50%);
+  z-index: 0;
+}
+
+.onboarding-modal--welcome .onboarding-modal__logo {
+  width: 206px;
+}
+
+.onboarding-modal--welcome .onboarding-modal__surface {
+  margin: 55px -16px 0;
+}
+
+.onboarding-modal--welcome .onboarding-modal__content {
+  min-height: 0;
+  padding: 20px 20px 0;
+  background: linear-gradient(#fff 0 190px, transparent 190px);
+}
+
+.onboarding-modal--welcome .onboarding-modal__message-stack {
+  gap: 5px;
+  margin-bottom: 24px;
+}
+
+.onboarding-modal--welcome .onboarding-modal__headline {
+  color: #27aae1;
+  font-size: 30px;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.onboarding-modal--welcome .onboarding-modal__subcopy {
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.onboarding-modal--welcome .onboarding-modal__lead {
+  width: min(100%, 622px);
+  margin: 0 0 96px;
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+.onboarding-modal--welcome .onboarding-modal__cta {
+  min-height: 51px;
+  gap: 17px;
+  padding: 0 30px;
+  border-radius: 10px;
+  font-size: 20px;
+  box-shadow: none;
+}
+
+.onboarding-modal--welcome .onboarding-modal__cta-icon {
+  font-size: 22px;
+}
+
 .onboarding-modal--question .onboarding-modal__content {
   padding-top: 76px;
   padding-bottom: 72px;
@@ -966,7 +1049,7 @@ select.modal-input {
   min-height: 466px;
   padding: 18px 16px 0;
   background:
-    url("./images/onboarding/cash-store-wave.png") center -136px / 861px 668px no-repeat,
+    url("./images/onboarding/cash-store-wave.svg") center -136px / 861px 668px no-repeat,
     linear-gradient(130deg, #ffffff 0%, #eef9fe 42%, #4eb7e3 100%);
 }
 
@@ -4004,6 +4087,26 @@ select.modal-input {
 
   .onboarding-modal--welcome .onboarding-modal__content {
     padding-top: 46px;
+  }
+
+  .onboarding-modal--welcome .onboarding-modal__content {
+    background: linear-gradient(#fff 0 270px, transparent 270px);
+    padding-top: 46px;
+  }
+
+  .onboarding-modal--welcome .onboarding-modal__headline {
+    font-size: 1.75rem;
+  }
+
+  .onboarding-modal--welcome .onboarding-modal__lead {
+    margin-bottom: 96px;
+    font-size: 1.03rem;
+  }
+
+  .onboarding-modal--welcome .onboarding-modal__cta {
+    min-height: 54px;
+    gap: 12px;
+    font-size: 1.05rem;
   }
 
   .onboarding-modal__headline {
